@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from api.routes import workspaces, hosts, services, reports, audit, health, auth
+from api.routes import workspaces, hosts, services, reports, audit, health, auth, history
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
@@ -49,6 +49,7 @@ app.include_router(hosts.router)
 app.include_router(services.router)
 app.include_router(reports.router)
 app.include_router(audit.router)
+app.include_router(history.router)
 
 if __name__ == "__main__":
     print("="*50)
