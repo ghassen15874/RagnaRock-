@@ -11,10 +11,7 @@ class TestLogger(unittest.TestCase):
         self.sys_logger = LoggerFactory.get_logger("system")
         
     def tearDown(self):
-        # Close all handlers to allow deletion in Windows (though we are on Linux)
-        for logger in LoggerFactory._loggers.values():
-            for handler in logger.handlers:
-                handler.close()
+        LoggerFactory.reset()
         self.temp_dir.cleanup()
 
     def test_secret_scrubbing(self):

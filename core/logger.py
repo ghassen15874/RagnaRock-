@@ -68,6 +68,16 @@ class LoggerFactory:
             return logger
 
     @staticmethod
+    def reset():
+        """Reset the logger factory (useful for tests)"""
+        with LoggerFactory._lock:
+            for logger in LoggerFactory._loggers.values():
+                for handler in list(logger.handlers):
+                    handler.close()
+                    logger.removeHandler(handler)
+            LoggerFactory._loggers.clear()
+
+    @staticmethod
     def get_logger(name="system"):
         return LoggerFactory._loggers.get(name, logging.getLogger("RagnaRok.default"))
 
