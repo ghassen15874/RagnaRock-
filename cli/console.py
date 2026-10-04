@@ -12,10 +12,12 @@ import argparse
 from core.framework import PySploitFramework
 from core.payload_generator import PayloadGenerator
 from core.module_manager import ModuleManager
+from core.output import OutputFormatter, Fore
 
 class PySploitConsole(cmd.Cmd):
     def __init__(self):
         super().__init__()
+        self.formatter = OutputFormatter()
         self.framework = PySploitFramework()
         self.generator = PayloadGenerator(self.framework)
         self.module_manager = ModuleManager(self.framework)
@@ -25,8 +27,9 @@ class PySploitConsole(cmd.Cmd):
     def update_prompt(self):
         """Update prompt based on current context"""
         workspace = self.framework.session_manager.current_workspace
-        ws_prefix = f"[{workspace}] " if workspace != 'default' else ""
-        self.prompt = f"{ws_prefix}{self.module_manager.get_prompt()} > "
+        ws_prefix = f"[{self.formatter._color(workspace, Fore.CYAN)}] " if workspace != 'default' else ""
+        prompt_module = self.formatter._color(self.module_manager.get_prompt(), Fore.RED)
+        self.prompt = f"{ws_prefix}pysploit {prompt_module} > "
     
     def get_banner(self):
         return """
@@ -499,19 +502,19 @@ class PySploitConsole(cmd.Cmd):
             # List all sessions
             sessions = self.framework.session_manager.list_sessions()
             if sessions:
-                print("\nActive Sessions:")
-                print("=" * 60)
+                rows = []
                 for sid, info in sessions.items():
                     status = "ACTIVE" if info.get('active', False) else "INACTIVE"
-                    socket_status = " [SOCKET]" if info.get('metadata', {}).get('has_socket') else " [NO SOCKET]"
-                    print(f"  {sid} - {info.get('type', 'unknown')} - {info.get('target', 'unknown')} [{status}]{socket_status}")
+                    socket_status = "YES" if info.get('metadata', {}).get('has_socket') else "NO"
+                    rows.append([sid, info.get('type', 'unknown'), info.get('target', 'unknown'), status, socket_status])
+                
+                self.formatter.print_table("Active Sessions", ["Session ID", "Type", "Target", "Status", "Has Socket"], rows)
                 
                 # Show session statistics
                 stats = self.framework.session_manager.get_session_stats()
-                print(f"\nSession Statistics:")
-                print(f"  Total: {stats['total']}, Active with socket: {stats['active_with_socket']}, Active no socket: {stats['active_no_socket']}")
+                self.formatter.print_info(f"Statistics: Total: {stats['total']} | Active w/ socket: {stats['active_with_socket']} | Active no socket: {stats['active_no_socket']}")
             else:
-                print("No active sessions")
+                self.formatter.print_warning("No active sessions")
         
         elif args[0] == 'kill':
             if len(args) > 1:
@@ -594,9 +597,9 @@ class PySploitConsole(cmd.Cmd):
         payload = "whoami"  # This would be the actual persistence payload
         
         if self.framework.session_manager.add_persistence(session_id, method, payload, options):
-            print(f"[+] Persistence added to session {session_id}")
+            self.formatter.print_success(f"Persistence added to session {session_id}")
         else:
-            print(f"[-] Failed to add persistence")
+            self.formatter.print_error(f"Failed to add persistence")
 
     # ========== DATABASE & WORKSPACE COMMANDS ==========
     
@@ -609,37 +612,38 @@ class PySploitConsole(cmd.Cmd):
         if not args:
             # List workspaces
             workspaces = db.get_workspaces()
-            print("\nWorkspaces:")
-            print("=" * 50)
-            for ws in workspaces:
-                prefix = "* " if ws == sm.current_workspace else "  "
-                print(f"{prefix}{ws}")
+            rows = [[("*" if ws == sm.current_workspace else ""), ws] for ws in workspaces]
+            self.formatter.print_table("Workspaces", ["Active", "Name"], rows)
             return
             
         if args[0] == '-a' and len(args) > 1:
             name = args[1]
             if db.add_workspace(name):
-                print(f"[+] Added workspace: {name}")
+                self.formatter.print_success(f"Added workspace: {name}")
                 sm.set_workspace(name)
                 self.update_prompt()
+            else:
+                self.formatter.print_error(f"Failed to add workspace: {name}")
             return
             
         if args[0] == '-d' and len(args) > 1:
             name = args[1]
             if name == sm.current_workspace:
-                print("[-] Cannot delete the active workspace")
+                self.formatter.print_error("Cannot delete the active workspace")
                 return
             if db.delete_workspace(name):
-                print(f"[+] Deleted workspace: {name}")
+                self.formatter.print_success(f"Deleted workspace: {name}")
+            else:
+                self.formatter.print_error(f"Failed to delete workspace: {name}")
             return
             
         # Switch workspace
         name = args[0]
         if sm.set_workspace(name):
-            print(f"[*] Switched to workspace: {name}")
+            self.formatter.print_info(f"Switched to workspace: {name}")
             self.update_prompt()
         else:
-            print(f"[-] Workspace not found: {name}")
+            self.formatter.print_error(f"Workspace not found: {name}", hint="Use 'workspace -a <name>' to create it.")
 
     def do_hosts(self, arg):
         """List all hosts in the database: hosts"""
@@ -648,19 +652,16 @@ class PySploitConsole(cmd.Cmd):
         hosts = db.get_hosts(sm.current_workspace)
         
         if not hosts:
-            print(f"[-] No hosts found in workspace '{sm.current_workspace}'")
+            self.formatter.print_warning(f"No hosts found in workspace '{sm.current_workspace}'")
             return
             
-        print(f"\nHosts in Workspace: {sm.current_workspace}")
-        print("=" * 60)
-        print(f"{'ID':<5} {'IP Address':<16} {'MAC':<18} {'OS':<10} {'Status'}")
-        print("-" * 60)
+        rows = []
         for host in hosts:
             host_id, ws, ip, mac, os_name, status, created, updated = host
-            mac = mac or ""
-            os_name = os_name or ""
-            print(f"{host_id:<5} {ip:<16} {mac:<18} {os_name:<10} {status}")
-        print()
+            rows.append([host_id, ip, mac or "", os_name or "", status])
+            
+        self.formatter.print_table(f"Hosts in Workspace: {sm.current_workspace}", 
+                                   ["ID", "IP Address", "MAC", "OS", "Status"], rows)
 
     def do_api(self, arg):
         """Start the REST API server: api [start]"""
@@ -702,18 +703,16 @@ class PySploitConsole(cmd.Cmd):
             
         services = db.get_services(host_id)
         if not services:
-            print(f"[-] No services found for host ID {host_id}")
+            self.formatter.print_warning(f"No services found for host ID {host_id}")
             return
             
-        print(f"\nServices for Host ID: {host_id}")
-        print("=" * 50)
-        print(f"{'Port':<8} {'Protocol':<10} {'Service':<15} {'State'}")
-        print("-" * 50)
+        rows = []
         for svc in services:
             svc_id, hid, port, proto, name, state, info, created, updated = svc
-            name = name or ""
-            print(f"{port:<8} {proto:<10} {name:<15} {state}")
-        print()
+            rows.append([port, proto, name or "", state])
+            
+        self.formatter.print_table(f"Services for Host ID: {host_id}", 
+                                   ["Port", "Protocol", "Service", "State"], rows)
 
     def do_report(self, arg):
         """Generate a report for the current workspace: report [html|markdown] [filename]"""
@@ -755,7 +754,7 @@ class PySploitConsole(cmd.Cmd):
         
         if args[0] == "save":
             self.framework.session_manager.save_all_sessions()
-            print("[+] All sessions saved to database")
+            self.formatter.print_success("All sessions saved to database")
         
         elif args[0] == "clean":
             # Clean inactive sessions from database
@@ -770,11 +769,11 @@ class PySploitConsole(cmd.Cmd):
             # Reset entire database
             if len(args) > 1 and args[1] == "force":
                 removed_count = self.framework.session_manager.db.reset_database()
-                print(f"[+] Database reset: removed {removed_count} entries")
+                self.formatter.print_success(f"Database reset: removed {removed_count} entries")
             else:
-                print("[!] DANGEROUS: This will reset the entire database!")
-                print("[!] All sessions and persistence data will be lost!")
-                print("[!] Use 'db reset force' to confirm")
+                self.formatter.print_error("DANGEROUS: This will reset the entire database!")
+                self.formatter.print_error("All sessions and persistence data will be lost!")
+                self.formatter.print_error("Use 'db reset force' to confirm")
         
         elif args[0] == "stats":
             # Show database statistics
@@ -803,9 +802,9 @@ class PySploitConsole(cmd.Cmd):
         filename = arg.strip() or f"sessions_export_{int(time.time())}.json"
         
         if self.framework.session_manager.export_sessions(filename):
-            print(f"[+] Sessions exported to {filename}")
+            self.formatter.print_success(f"Sessions exported to {filename}")
         else:
-            print("[-] Export failed")
+            self.formatter.print_error("Export failed")
 
     def do_import(self, arg):
         """Import sessions: import <filename>"""
@@ -814,9 +813,9 @@ class PySploitConsole(cmd.Cmd):
             return
         
         if self.framework.session_manager.import_sessions(arg):
-            print(f"[+] Sessions imported from {arg}")
+            self.formatter.print_success(f"Sessions imported from {arg}")
         else:
-            print("[-] Import failed")
+            self.formatter.print_error("Import failed")
 
     # ========== HANDLER MANAGEMENT COMMANDS ==========
     
@@ -827,13 +826,13 @@ class PySploitConsole(cmd.Cmd):
         if not args or args[0] == 'list':
             handlers = self.framework.handlers['reverse_shell'].list_handlers()
             if handlers:
-                print("\nActive Handlers:")
-                print("=" * 50)
+                rows = []
                 for handler_id, info in handlers.items():
                     status = "LISTENING" if info.get('active') else "STOPPED"
-                    print(f"  {handler_id} - {info.get('lhost')}:{info.get('lport')} - {status}")
+                    rows.append([handler_id, info.get('lhost'), info.get('lport'), status])
+                self.formatter.print_table("Active Handlers", ["ID", "LHOST", "LPORT", "Status"], rows)
             else:
-                print("No active handlers")
+                self.formatter.print_warning("No active handlers")
         
         elif args[0] == 'stop' and len(args) > 1:
             handler_id = args[1]
