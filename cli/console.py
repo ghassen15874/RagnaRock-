@@ -849,27 +849,73 @@ class PySploitConsole(cmd.Cmd):
     # ========== SCRIPTING COMMANDS ==========
     
     def do_resource(self, arg):
-        """Run commands from a resource file: resource <file>"""
-        if not arg:
-            print("Usage: resource <file>")
+        """Run commands from a resource file: resource [--verify] [--halt-on-error] <file>"""
+        args = arg.split()
+        if not args:
+            self.formatter.print_error("Usage: resource [--verify] [--halt-on-error] <file>")
             return
             
+        verify_only = '--verify' in args
+        halt_on_error = '--halt-on-error' in args
+        
+        # Remove flags to get filename
+        args = [a for a in args if not a.startswith('--')]
+        if not args:
+            self.formatter.print_error("Filename required")
+            return
+            
+        filename = args[0]
         import os
-        if not os.path.exists(arg):
-            print(f"[-] Resource file not found: {arg}")
+        if not os.path.exists(filename):
+            self.formatter.print_error(f"Resource file not found: {filename}")
             return
             
-        print(f"[*] Running resource script: {arg}")
+        # Security: Prevent executing administrative/system shell commands from automated files
+        forbidden_commands = ['shell', 'test_session', 'debug_sessions', 'quit', 'exit']
+        
+        self.formatter.print_info(f"Analyzing resource script: {filename}")
+        
+        commands_to_run = []
         try:
-            with open(arg, 'r') as f:
-                for line in f:
+            with open(filename, 'r') as f:
+                for line_num, line in enumerate(f, 1):
                     line = line.strip()
                     if not line or line.startswith('#'):
                         continue
-                    print(f"[*] Executing: {line}")
-                    self.onecmd(line)
+                    
+                    cmd_name = line.split()[0].lower()
+                    if cmd_name in forbidden_commands:
+                        self.formatter.print_error(f"Line {line_num}: Forbidden command '{cmd_name}' detected. Execution aborted.")
+                        return
+                        
+                    commands_to_run.append((line_num, line))
         except Exception as e:
-            print(f"[-] Error executing resource file: {e}")
+            self.formatter.print_error(f"Failed to read resource file: {e}")
+            return
+            
+        if verify_only:
+            self.formatter.print_success(f"Verification passed: {len(commands_to_run)} commands found, 0 forbidden.")
+            return
+            
+        self.formatter.print_info(f"Running {len(commands_to_run)} commands from {filename}...")
+        
+        for line_num, cmd in commands_to_run:
+            # Prevent logging secrets
+            safe_cmd = cmd
+            if 'password' in cmd.lower() or 'pass=' in cmd.lower() or 'secret' in cmd.lower():
+                safe_cmd = "<Command contains hidden credentials>"
+                
+            self.formatter.print_info(f"Executing [Line {line_num}]: {safe_cmd}")
+            try:
+                # onecmd processes the command. If it returns True, it means quit/exit.
+                stop = self.onecmd(cmd)
+                if stop:
+                    break
+            except Exception as e:
+                self.formatter.print_error(f"Error on line {line_num} ('{safe_cmd}'): {e}")
+                if halt_on_error:
+                    self.formatter.print_warning("Halting execution due to error.")
+                    break
 
     # ========== DEBUG & TESTING COMMANDS ==========
     

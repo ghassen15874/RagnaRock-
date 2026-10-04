@@ -8,8 +8,11 @@ import os
 import sys
 from core.session_manager import SessionManager
 from core.handlers import ReverseShellHandler, HTTPHandler
+from core.config import ConfigManager
+
 class PySploitFramework:
     def __init__(self, quiet=False):
+        self.config = ConfigManager()
         self.quiet = quiet
         self.payloads = {}
         self.encoders = {}

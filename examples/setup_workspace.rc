@@ -1,0 +1,26 @@
+# Example RagnaRok Resource Script
+# Usage in RagnaRok Console: resource examples/setup_workspace.rc
+
+# Create and switch to a new test workspace
+workspace -a local_test
+
+# Select a module to configure
+use auxiliary/portscan
+
+# Set target configurations
+set RHOSTS 127.0.0.1
+set THREADS 5
+set PORTS 21,22,80,443,8080
+
+# This is just a setup script, so we don't automatically run it.
+# To run automatically uncomment the next line:
+# run
+
+# Check the database for our workspace
+db info
+
+# Start an HTTP handler for testing payloads
+handler http LHOST=127.0.0.1 LPORT=8080
+
+# Show handlers
+handlers list
