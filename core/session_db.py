@@ -64,6 +64,36 @@ class SessionDatabase:
                     FOREIGN KEY (session_id) REFERENCES sessions (session_id)
                 )
             ''')
+
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS hosts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    workspace TEXT,
+                    ip_address TEXT,
+                    mac_address TEXT,
+                    os_name TEXT,
+                    status TEXT,
+                    created_at TEXT,
+                    updated_at TEXT,
+                    UNIQUE(workspace, ip_address)
+                )
+            ''')
+
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS services (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    host_id INTEGER,
+                    port INTEGER,
+                    protocol TEXT,
+                    name TEXT,
+                    state TEXT,
+                    info TEXT,
+                    created_at TEXT,
+                    updated_at TEXT,
+                    UNIQUE(host_id, port, protocol),
+                    FOREIGN KEY (host_id) REFERENCES hosts (id) ON DELETE CASCADE
+                )
+            ''')
             conn.commit()
     
     def save_session(self, session):
@@ -266,7 +296,7 @@ class SessionDatabase:
             return False
 
     def delete_workspace(self, name):
-        """Delete a workspace and its associated sessions"""
+        """Delete a workspace and its associated sessions, hosts, and services"""
         if name == 'default':
             print("[-] Cannot delete default workspace")
             return False
@@ -275,11 +305,83 @@ class SessionDatabase:
                 cursor = conn.cursor()
                 cursor.execute('DELETE FROM workspaces WHERE name = ?', (name,))
                 cursor.execute('DELETE FROM sessions WHERE workspace = ?', (name,))
+                
+                # Delete hosts in workspace (cascades to services because of ON DELETE CASCADE, if pragma foreign_keys=ON is set on the connection doing the delete)
+                # Ensure foreign_keys pragma is enabled for this connection
+                conn.execute('PRAGMA foreign_keys=ON')
+                cursor.execute('DELETE FROM hosts WHERE workspace = ?', (name,))
+                
                 conn.commit()
             return True
         except Exception as e:
             print(f"[-] Failed to delete workspace: {e}")
             return False
+
+    def add_host(self, workspace, ip_address, status='alive', os_name=None, mac_address=None):
+        """Add or update a host"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                now = datetime.now().isoformat()
+                cursor.execute('''
+                    INSERT INTO hosts (workspace, ip_address, status, os_name, mac_address, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(workspace, ip_address) DO UPDATE SET
+                        status = excluded.status,
+                        os_name = coalesce(excluded.os_name, hosts.os_name),
+                        mac_address = coalesce(excluded.mac_address, hosts.mac_address),
+                        updated_at = excluded.updated_at
+                ''', (workspace, ip_address, status, os_name, mac_address, now, now))
+                conn.commit()
+                # Return the host id
+                cursor.execute('SELECT id FROM hosts WHERE workspace = ? AND ip_address = ?', (workspace, ip_address))
+                return cursor.fetchone()[0]
+        except Exception as e:
+            print(f"[-] Failed to add/update host: {e}")
+            return None
+
+    def add_service(self, host_id, port, protocol='tcp', name=None, state='open', info=None):
+        """Add or update a service on a host"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                now = datetime.now().isoformat()
+                cursor.execute('''
+                    INSERT INTO services (host_id, port, protocol, name, state, info, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(host_id, port, protocol) DO UPDATE SET
+                        name = coalesce(excluded.name, services.name),
+                        state = excluded.state,
+                        info = coalesce(excluded.info, services.info),
+                        updated_at = excluded.updated_at
+                ''', (host_id, port, protocol, name, state, info, now, now))
+                conn.commit()
+            return True
+        except Exception as e:
+            print(f"[-] Failed to add/update service: {e}")
+            return False
+
+    def get_hosts(self, workspace):
+        """Get all hosts for a workspace"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT * FROM hosts WHERE workspace = ?', (workspace,))
+                return cursor.fetchall()
+        except Exception as e:
+            print(f"[-] Failed to get hosts: {e}")
+            return []
+            
+    def get_services(self, host_id):
+        """Get all services for a host"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT * FROM services WHERE host_id = ?', (host_id,))
+                return cursor.fetchall()
+        except Exception as e:
+            print(f"[-] Failed to get services: {e}")
+            return []
 
     def deactivate_session(self, session_id):
         """Mark a session as inactive in database."""

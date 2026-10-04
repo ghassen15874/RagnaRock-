@@ -276,7 +276,20 @@ class PySploitConsole(cmd.Cmd):
                 print(f"[-] Failed to start TCP handler on {lhost}:{lport}")
         
         elif handler_type == 'http':
-            print("[-] HTTP handler not yet implemented")
+            # Start HTTP beacon handler
+            handler_id = f"http_{lhost}_{lport}"
+            if self.start_http_handler(lhost, lport, handler_id):
+                self.framework.active_handlers[handler_id] = {
+                    'type': 'http',
+                    'lhost': lhost,
+                    'lport': lport,
+                    'thread': None
+                }
+                print(f"[+] HTTP handler started on {lhost}:{lport}")
+                print(f"[+] Handler ID: {handler_id}")
+                print(f"[+] Ready to capture HTTP beacons")
+            else:
+                print(f"[-] Failed to start HTTP handler on {lhost}:{lport}")
         else:
             print("[-] Unknown handler type. Use 'tcp' or 'http'")
 
@@ -302,6 +315,33 @@ class PySploitConsole(cmd.Cmd):
             return True
         except Exception as e:
             print(f"[-] Failed to start TCP handler: {e}")
+            return False
+
+    def start_http_handler(self, lhost, lport, handler_id):
+        """Start an HTTP beacon handler"""
+        try:
+            handler = self.framework.handlers.get('http')
+            if not handler:
+                print("[-] HTTP handler module not loaded")
+                return False
+                
+            handler_thread = threading.Thread(
+                target=handler._run_server,
+                args=(lhost, lport, handler_id),
+                daemon=True
+            )
+            handler_thread.start()
+            
+            # Store the thread reference
+            self.framework.active_handlers[handler_id] = {
+                'type': 'http',
+                'lhost': lhost,
+                'lport': lport,
+                'thread': handler_thread
+            }
+            return True
+        except Exception as e:
+            print(f"[-] Failed to start HTTP handler: {e}")
             return False
 
     # ========== LEGACY EXPLOIT COMMAND ==========
@@ -601,6 +641,62 @@ class PySploitConsole(cmd.Cmd):
         else:
             print(f"[-] Workspace not found: {name}")
 
+    def do_hosts(self, arg):
+        """List all hosts in the database: hosts"""
+        db = self.framework.session_manager.db
+        sm = self.framework.session_manager
+        hosts = db.get_hosts(sm.current_workspace)
+        
+        if not hosts:
+            print(f"[-] No hosts found in workspace '{sm.current_workspace}'")
+            return
+            
+        print(f"\nHosts in Workspace: {sm.current_workspace}")
+        print("=" * 60)
+        print(f"{'ID':<5} {'IP Address':<16} {'MAC':<18} {'OS':<10} {'Status'}")
+        print("-" * 60)
+        for host in hosts:
+            host_id, ws, ip, mac, os_name, status, created, updated = host
+            mac = mac or ""
+            os_name = os_name or ""
+            print(f"{host_id:<5} {ip:<16} {mac:<18} {os_name:<10} {status}")
+        print()
+
+    def do_services(self, arg):
+        """List all services for a host: services [-h|--host] <host_id>"""
+        db = self.framework.session_manager.db
+        
+        # simple parsing
+        args = arg.split()
+        if not args:
+            print("Usage: services <host_id>")
+            return
+            
+        host_id = None
+        for a in args:
+            if a.isdigit():
+                host_id = int(a)
+                break
+                
+        if host_id is None:
+            print("[-] Please provide a valid numeric host ID (see 'hosts' command)")
+            return
+            
+        services = db.get_services(host_id)
+        if not services:
+            print(f"[-] No services found for host ID {host_id}")
+            return
+            
+        print(f"\nServices for Host ID: {host_id}")
+        print("=" * 50)
+        print(f"{'Port':<8} {'Protocol':<10} {'Service':<15} {'State'}")
+        print("-" * 50)
+        for svc in services:
+            svc_id, hid, port, proto, name, state, info, created, updated = svc
+            name = name or ""
+            print(f"{port:<8} {proto:<10} {name:<15} {state}")
+        print()
+
     def do_db(self, arg):
         """Database management: db [save|clean|reset|stats|info]"""
         args = arg.split()
@@ -847,6 +943,8 @@ class PySploitConsole(cmd.Cmd):
             
             print("\n💾 DATABASE & WORKSPACE COMMANDS:")
             print("  workspace [-a <name>|-d <name>|<name>] - Manage workspaces")
+            print("  hosts                                 - List discovered hosts")
+            print("  services <host_id>                    - List services for host")
             print("  db [save|clean|reset|stats|info]      - Database management")
             print("  export [filename]                     - Export sessions")
             print("  import <filename>                     - Import sessions")

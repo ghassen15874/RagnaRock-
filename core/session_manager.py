@@ -250,8 +250,10 @@ class SessionManager:
             return self.interact_reverse_shell(session)
         elif session.session_type == "meterpreter":
             return self.interact_meterpreter(session)
-        elif session.session_type == "test_shell":  # ✅ ADD THIS
+        elif session.session_type == "test_shell":
             return self.interact_test_shell(session)
+        elif session.session_type == "beacon":
+            return self.interact_beacon(session)
         else:
             print(f"[-] Unknown session type: {session.session_type}")
             return False
@@ -501,4 +503,73 @@ exit      - Exit session
                 print(f"[-] Error: {e}")
                 break
         
+        return True
+
+    def interact_beacon(self, session):
+        """Interact with HTTP beacon session"""
+        import uuid
+        
+        print("[*] HTTP Beacon Session - Commands are queued until beacon checks in")
+        print("[*] Available commands: exit, background, info, <shell_command>")
+        
+        # Ensure session has tasks and results attributes
+        if not hasattr(session, 'tasks'):
+            session.tasks = []
+        if not hasattr(session, 'results'):
+            session.results = {}
+            
+        while session.active:
+            try:
+                cmd = input("beacon> ").strip()
+                
+                if cmd.lower() in ('exit', 'background'):
+                    print("[*] Backgrounding beacon session")
+                    break
+                elif cmd.lower() == 'info':
+                    print("\nBeacon Information:")
+                    for k, v in session.metadata.items():
+                        print(f"  {k}: {v}")
+                    print(f"  Last check-in: {datetime.fromtimestamp(session.last_seen).strftime('%Y-%m-%d %H:%M:%S') if hasattr(session, 'last_seen') and isinstance(session.last_seen, float) else session.last_seen}")
+                    print(f"  Pending tasks: {len(session.tasks)}")
+                    print()
+                elif cmd:
+                    # Queue the command as a task
+                    task_id = str(uuid.uuid4())
+                    task = {
+                        'task_id': task_id,
+                        'type': 'shell',
+                        'command': cmd
+                    }
+                    session.tasks.append(task)
+                    print(f"[*] Task {task_id} queued. Waiting for beacon check-in...")
+                    
+                    # Wait for result
+                    wait_count = 0
+                    max_waits = 30  # Wait up to 30 seconds
+                    found_result = False
+                    
+                    while wait_count < max_waits:
+                        if task_id in session.results:
+                            result = session.results.pop(task_id)
+                            output = result.get('output', '')
+                            if output:
+                                print(f"\n[+] Task output:\n{output}")
+                            else:
+                                print(f"\n[+] Task completed with no output")
+                            found_result = True
+                            break
+                        
+                        time.sleep(1)
+                        wait_count += 1
+                        
+                    if not found_result:
+                        print(f"[-] Task timed out waiting for beacon check-in (task remains queued)")
+                        
+            except KeyboardInterrupt:
+                print("\n[*] Backgrounding beacon session")
+                break
+            except Exception as e:
+                print(f"[-] Error interacting with beacon: {e}")
+                break
+                
         return True

@@ -240,7 +240,7 @@ class PortScanner(AuxiliaryBase):
             return False
 
     def show_results(self, scan_time):
-        """Display scan results"""
+        """Display scan results and save to database"""
         print(f"\n[*] Scan completed in {scan_time:.2f} seconds")
         print(f"[*] Scanned {self.scanned_count} ports")
         print(f"[*] Found {len(self.open_ports)} open ports\n")
@@ -256,10 +256,25 @@ class PortScanner(AuxiliaryBase):
                     hosts_ports[host] = []
                 hosts_ports[host].append(port)
             
+            # Database saving logic
+            db_available = hasattr(self, 'framework') and self.framework and hasattr(self.framework, 'session_manager')
+            if db_available:
+                db = self.framework.session_manager.db
+                workspace = self.framework.session_manager.current_workspace
+                print(f"[*] Saving results to workspace '{workspace}'...")
+            
             for host in sorted(hosts_ports.keys()):
                 print(f"\n{host}:")
+                
+                host_id = None
+                if db_available:
+                    host_id = db.add_host(workspace, host, status='alive')
+                
                 for port in sorted(hosts_ports[host]):
                     service = self.get_service_name(port)
                     print(f"  {port}/tcp - {service}")
+                    
+                    if db_available and host_id:
+                        db.add_service(host_id, port, protocol='tcp', name=service, state='open')
         
         print(f"\n[+] Port scan completed")
