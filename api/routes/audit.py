@@ -4,10 +4,12 @@ import os
 import tempfile
 from api.schemas.common import UnifiedResponse
 from core.logger import LoggerFactory
+from fastapi import Depends
+from api.routes.auth import require_role
 
 router = APIRouter(prefix="/api/v1/audit-logs", tags=["Audit"])
 
-@router.get("/export", response_model=UnifiedResponse)
+@router.get("/export", response_model=UnifiedResponse, dependencies=[Depends(require_role("Administrator"))])
 async def export_audit_logs():
     # Secure random temp file path for the zip
     fd, path = tempfile.mkstemp(suffix=".zip")

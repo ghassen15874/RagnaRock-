@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from api.routes import workspaces, hosts, services, reports, audit, health
-from api.middleware.auth import auth_middleware, API_TOKEN
+from api.routes import workspaces, hosts, services, reports, audit, health, auth
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 # Setup basic logging for API
@@ -33,9 +33,16 @@ async def generic_exception_handler(request: Request, exc: Exception):
     )
 
 # Add middleware
-app.middleware("http")(auth_middleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, restrict this to the dashboard origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Register routes
+app.include_router(auth.router)
 app.include_router(health.router)
 app.include_router(workspaces.router)
 app.include_router(hosts.router)

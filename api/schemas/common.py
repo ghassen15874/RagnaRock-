@@ -8,6 +8,17 @@ class UnifiedResponse(BaseModel, Generic[T]):
     message: Optional[str] = None
     data: Optional[T] = None
 
+class PaginatedData(BaseModel, Generic[T]):
+    items: List[T]
+    total: int
+    limit: int
+    offset: int
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    status: str
+    message: Optional[str] = None
+    data: Optional[PaginatedData[T]] = None
+
 class Workspace(BaseModel):
     name: str
 

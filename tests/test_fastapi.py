@@ -7,8 +7,21 @@ from core.logger import LoggerFactory
 class TestFastAPI(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
-        self.headers = {"X-Api-Token": API_TOKEN}
         LoggerFactory.setup()
+        
+        from api.services.auth_service import auth_service
+        # Reset DB and users for clean tests
+        with __import__('sqlite3').connect(auth_service.db.db_path) as conn:
+            conn.execute("DELETE FROM users")
+            conn.execute("DELETE FROM login_attempts")
+            conn.execute("DELETE FROM revoked_tokens")
+            
+        auth_service._ensure_admin_exists()
+        
+        # Get token
+        resp = self.client.post("/api/v1/auth/login", json={"username": "admin", "password": "admin123"})
+        token = resp.json()["data"]["access_token"]
+        self.headers = {"Authorization": f"Bearer {token}"}
 
     def tearDown(self):
         LoggerFactory.reset()
@@ -21,10 +34,10 @@ class TestFastAPI(unittest.TestCase):
 
     def test_unauthorized(self):
         # Missing token
-        response = self.client.get("/api/v1/health")
+        response = self.client.get("/api/v1/workspaces")
         self.assertEqual(response.status_code, 401)
         # Invalid token
-        response = self.client.get("/api/v1/health", headers={"X-Api-Token": "invalid"})
+        response = self.client.get("/api/v1/workspaces", headers={"Authorization": "Bearer invalid"})
         self.assertEqual(response.status_code, 401)
 
     def test_workspaces(self):

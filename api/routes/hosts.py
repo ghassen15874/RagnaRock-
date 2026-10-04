@@ -1,12 +1,21 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import List
 from api.schemas.common import UnifiedResponse, Host
 from api.services.framework_service import FrameworkService
+from api.routes.auth import get_current_user
+from api.services.auth_service import auth_service
 
 router = APIRouter(prefix="/api/v1/hosts", tags=["Hosts"])
 
 @router.get("", response_model=UnifiedResponse[List[Host]])
-async def list_hosts(workspace: str = Query("default", description="Workspace name for data isolation")):
+async def list_hosts(
+    workspace: str = Query("default", description="Workspace name for data isolation"),
+    user: dict = Depends(get_current_user)
+):
+    # Enforce Workspace RBAC at service level conceptually
+    if not auth_service.check_permission(user, "Viewer", workspace):
+        raise HTTPException(status_code=403, detail="Not authorized to access this workspace")
+        
     db = FrameworkService.get_db()
     
     # Ensure workspace exists before querying
