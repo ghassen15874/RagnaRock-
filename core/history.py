@@ -6,6 +6,46 @@ from typing import Dict, Any, List
 class HistoryAnalyzer:
     def __init__(self, db):
         self.db = db
+        self.init_history_tables()
+
+    def init_history_tables(self):
+        with sqlite3.connect(self.db.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS scans (
+                    scan_id TEXT PRIMARY KEY,
+                    workspace TEXT,
+                    start_time TEXT,
+                    end_time TEXT,
+                    status TEXT,
+                    source TEXT,
+                    FOREIGN KEY (workspace) REFERENCES workspaces(name) ON DELETE CASCADE
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS scan_hosts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    scan_id TEXT,
+                    ip_address TEXT,
+                    mac_address TEXT,
+                    os_name TEXT,
+                    status TEXT,
+                    FOREIGN KEY (scan_id) REFERENCES scans(scan_id) ON DELETE CASCADE
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS scan_services (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    scan_id TEXT,
+                    host_ip TEXT,
+                    port INTEGER,
+                    protocol TEXT,
+                    name TEXT,
+                    state TEXT,
+                    FOREIGN KEY (scan_id) REFERENCES scans(scan_id) ON DELETE CASCADE
+                )
+            ''')
+            conn.commit()
 
     def save_snapshot(self, workspace: str, source: str, status: str = "completed") -> str:
         """Takes a snapshot of the current workspace state and saves it as a historical scan."""

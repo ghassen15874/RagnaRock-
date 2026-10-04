@@ -1,7 +1,7 @@
 # RagnaRok Security Assessment Report
 
 **Workspace:** `ws1`  
-**Generated on:** 2026-10-04 13:15:53  
+**Generated on:** 2026-10-04 14:01:46  
 
 ---
 

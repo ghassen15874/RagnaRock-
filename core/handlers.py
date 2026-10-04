@@ -212,8 +212,9 @@ class HTTPHandler:
                 server.handle_request()
                 
             server.server_close()
+            if handler_id in self.active_handlers:
+                del self.active_handlers[handler_id]
             print(f"[-] HTTP handler {handler_id} stopped")
-            
         except Exception as e:
             print(f"[-] HTTP handler failed: {e}")
             if handler_id in self.active_handlers:

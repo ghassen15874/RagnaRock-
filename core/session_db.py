@@ -47,11 +47,7 @@ class SessionDatabase:
             cursor.execute('INSERT OR IGNORE INTO workspaces (name, description, created_at) VALUES (?, ?, ?)', 
                            ('default', 'Default Workspace', datetime.now().isoformat()))
             
-            # Upgrade existing sessions table to add workspace column if missing
-            try:
-                cursor.execute('ALTER TABLE sessions ADD COLUMN workspace TEXT DEFAULT "default"')
-            except sqlite3.OperationalError:
-                pass # Column already exists
+
 
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS persistence (
@@ -94,46 +90,85 @@ class SessionDatabase:
                     FOREIGN KEY (host_id) REFERENCES hosts (id) ON DELETE CASCADE
                 )
             ''')
+            conn.commit()
             
-            # Historical Analysis Tables
+            # Check if migration is needed (if hosts lacks Foreign Keys)
+            cursor.execute("PRAGMA foreign_key_list(hosts)")
+            fks = cursor.fetchall()
+            if not any(fk[2] == 'workspaces' for fk in fks):
+                self.migrate_to_v2(conn)
+            
+    def migrate_to_v2(self, conn):
+        """Safely migrate legacy database to new schema with Foreign Keys and workspace isolation."""
+        cursor = conn.cursor()
+        print("[*] Migrating database to v2 schema...")
+        
+        # Turn off FKs during migration
+        conn.execute('PRAGMA foreign_keys=OFF')
+        conn.execute('BEGIN TRANSACTION')
+        try:
+            # Add missing workspace column to legacy sessions
+            try:
+                cursor.execute('ALTER TABLE sessions ADD COLUMN workspace TEXT DEFAULT "default"')
+            except sqlite3.OperationalError:
+                pass
+                
+            # Ensure all referenced workspaces exist in workspaces table
+            cursor.execute('INSERT OR IGNORE INTO workspaces (name, description, created_at) SELECT DISTINCT workspace, "Migrated Workspace", datetime("now") FROM sessions WHERE workspace IS NOT NULL')
+            cursor.execute('INSERT OR IGNORE INTO workspaces (name, description, created_at) SELECT DISTINCT workspace, "Migrated Workspace", datetime("now") FROM hosts WHERE workspace IS NOT NULL')
+                
+            # Copy data to temp tables and rename (to enforce FKs)
+            # Sessions migration
+            cursor.execute('DROP TABLE IF EXISTS sessions_new')
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS scans (
-                    scan_id TEXT PRIMARY KEY,
-                    workspace TEXT,
-                    start_time TEXT,
-                    end_time TEXT,
-                    status TEXT,
-                    source TEXT,
+                CREATE TABLE sessions_new (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_id TEXT UNIQUE,
+                    session_type TEXT,
+                    target_info TEXT,
+                    created_at TEXT,
+                    last_seen TEXT,
+                    active INTEGER,
+                    metadata TEXT,
+                    exported INTEGER DEFAULT 0,
+                    workspace TEXT DEFAULT 'default',
                     FOREIGN KEY (workspace) REFERENCES workspaces (name) ON DELETE CASCADE
                 )
             ''')
-            
+            cursor.execute('INSERT INTO sessions_new SELECT * FROM sessions')
+            cursor.execute('DROP TABLE sessions')
+            cursor.execute('ALTER TABLE sessions_new RENAME TO sessions')
+
+            # Hosts migration
+            cursor.execute('DROP TABLE IF EXISTS hosts_new')
+            # Fix schema of new table to include FKs
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS scan_hosts (
+                CREATE TABLE hosts_new (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    scan_id TEXT,
+                    workspace TEXT,
                     ip_address TEXT,
                     mac_address TEXT,
                     os_name TEXT,
                     status TEXT,
-                    FOREIGN KEY (scan_id) REFERENCES scans (scan_id) ON DELETE CASCADE
+                    created_at TEXT,
+                    updated_at TEXT,
+                    UNIQUE(workspace, ip_address),
+                    FOREIGN KEY (workspace) REFERENCES workspaces (name) ON DELETE CASCADE
                 )
             ''')
-            
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS scan_services (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    scan_id TEXT,
-                    host_ip TEXT,
-                    port INTEGER,
-                    protocol TEXT,
-                    name TEXT,
-                    state TEXT,
-                    FOREIGN KEY (scan_id) REFERENCES scans (scan_id) ON DELETE CASCADE
-                )
-            ''')
+            cursor.execute('INSERT INTO hosts_new SELECT * FROM hosts')
+            cursor.execute('DROP TABLE hosts')
+            cursor.execute('ALTER TABLE hosts_new RENAME TO hosts')
+
             conn.commit()
-    
+            print("[+] Database migration to v2 completed successfully.")
+        except Exception as e:
+            conn.rollback()
+            print(f"[-] Database migration failed: {e}")
+            raise
+        finally:
+            conn.execute('PRAGMA foreign_keys=ON')
+            
     def save_session(self, session):
         """Save session to database using context manager (fixes B6)."""
         try:
