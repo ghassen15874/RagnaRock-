@@ -3,4 +3,9 @@ cryptography>=3.3.1
 pycryptodome>=3.9.9
 colorama>=0.4.4
 argcomplete>=1.12.3
-pyinstaller>=4.2; sys_platform == "win32"Flask>=2.0.0
+pyinstaller>=4.2; sys_platform == "win32"
+fastapi>=0.95.0
+uvicorn>=0.21.0
+pydantic>=1.10.0
+httpx
+pytest
