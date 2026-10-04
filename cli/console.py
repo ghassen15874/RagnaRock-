@@ -662,6 +662,24 @@ class PySploitConsole(cmd.Cmd):
             print(f"{host_id:<5} {ip:<16} {mac:<18} {os_name:<10} {status}")
         print()
 
+    def do_api(self, arg):
+        """Start the REST API server: api [start]"""
+        args = arg.split()
+        if not args or args[0] != 'start':
+            print("Usage: api start")
+            return
+            
+        if not hasattr(self.framework, 'api_server'):
+            from core.api_server import RestAPI
+            self.framework.api_server = RestAPI(self.framework)
+            token = self.framework.api_server.start_background()
+            
+            # Save token to file for easy copy
+            with open('api_token.txt', 'w') as f:
+                f.write(token)
+        else:
+            print("[-] API server is already running")
+
     def do_services(self, arg):
         """List all services for a host: services [-h|--host] <host_id>"""
         db = self.framework.session_manager.db
@@ -1039,6 +1057,7 @@ class PySploitConsole(cmd.Cmd):
             
             print("\n❓ OTHER COMMANDS:")
             print("  resource <file>                       - Run resource script")
+            print("  api start                             - Start secure REST API")
             print("  help [command]                        - Show help")
             print("  exit/quit                             - Exit console")
             print("  test_session                          - Test session manager")
