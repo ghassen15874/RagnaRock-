@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RagnaRok Security Assessment Report - {{ workspace }}</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #2980b9;
+            --accent: #e74c3c;
+            --bg: #f4f4f9;
+            --text: #333;
+            --card-bg: #fff;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 40px; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { color: var(--primary); font-size: 2.5em; margin-bottom: 10px; border-bottom: 2px solid var(--secondary); padding-bottom: 10px; }
+        
+        .card { 
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            margin-bottom: 30px; 
+        }
+        
+        .executive-summary { border-top: 5px solid var(--secondary); }
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 20px; 
+            margin-top: 20px; 
+        }
+        .stat-box { 
+            background: #ecf0f1; 
+            padding: 20px; 
+            border-radius: 6px; 
+            text-align: center; 
+        }
+        .stat-box h3 { margin: 0; color: var(--primary); font-size: 1.2em; }
+        .stat-box .number { font-size: 2.5em; font-weight: bold; color: var(--secondary); margin-top: 10px; }
+        
+        .host-card { border-left: 5px solid var(--accent); }
+        .host-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .host-header h3 { margin: 0; color: var(--primary); font-size: 1.5em; }
+        .badge { 
+            padding: 5px 10px; 
+            border-radius: 20px; 
+            font-size: 0.9em; 
+            font-weight: bold; 
+            background: #95a5a6; 
+            color: white; 
+        }
+        .badge.up { background: #2ecc71; }
+        .badge.down { background: #e74c3c; }
+        
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: var(--primary); color: white; }
+        tr:hover { background-color: #f9f9f9; }
+        
+        .footer { text-align: center; margin-top: 50px; color: #7f8c8d; font-size: 0.9em; }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+            .host-card { page-break-inside: avoid; }
+            .footer { position: fixed; bottom: 0; width: 100%; }
+            .badge { border: 1px solid #000; color: #000; background: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RagnaRok Security Assessment Report</h1>
+            <p><strong>Workspace:</strong> {{ workspace }}</p>
+            <p><strong>Generated on:</strong> {{ generation_date }}</p>
+        </div>
+
+        <div class="card executive-summary">
+            <h2>Executive Summary</h2>
+            <p>This report contains the security assessment results for the <strong>{{ workspace }}</strong> environment. It provides a detailed overview of discovered hosts, active services, and current network posture.</p>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <h3>Total Hosts</h3>
+                    <div class="number">{{ total_hosts }}</div>
+                </div>
+                <div class="stat-box">
+                    <h3>Active Hosts (Up)</h3>
+                    <div class="number">{{ up_hosts }}</div>
+                </div>
+                <div class="stat-box">
+                    <h3>Total Services</h3>
+                    <div class="number">{{ total_services }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <h2>Target Details & Discovered Services</h2>
+        
+        {% if hosts %}
+            {% for host in hosts %}
+            <div class="card host-card">
+                <div class="host-header">
+                    <h3>🎯 {{ host.ip }}</h3>
+                    <span class="badge {{ host.status.lower() }}">{{ host.status|upper }}</span>
+                </div>
+                
+                <p>
+                    {% if host.mac %}<strong>MAC Address:</strong> {{ host.mac }} &nbsp;&nbsp;|&nbsp;&nbsp; {% endif %}
+                    {% if host.os %}<strong>Operating System:</strong> {{ host.os }}{% endif %}
+                </p>
+                
+                <h4>Discovered Services ({{ host.services|length }})</h4>
+                {% if host.services %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Port</th>
+                            <th>Protocol</th>
+                            <th>Service Name</th>
+                            <th>State</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for svc in host.services %}
+                        <tr>
+                            <td><strong>{{ svc.port }}</strong></td>
+                            <td>{{ svc.protocol|upper }}</td>
+                            <td>{{ svc.name or 'Unknown' }}</td>
+                            <td>{{ svc.state }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p><em>No open services discovered for this host.</em></p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="card">
+                <p><em>No hosts were found in this workspace.</em></p>
+            </div>
+        {% endif %}
+        
+        <div class="footer">
+            <p>Generated by <strong>RagnaRok Framework</strong> - Authorized Security Testing ONLY.</p>
+            <p>Metadata: {{ metadata_source }}</p>
+        </div>
+    </div>
+</body>
+</html>

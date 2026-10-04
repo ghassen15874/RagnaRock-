@@ -1,0 +1,44 @@
+{
+    "workspace": "ws1",
+    "generation_date": "2026-10-04 13:15:53",
+    "metadata_source": "RagnaRok Core DB Engine",
+    "total_hosts": 2,
+    "up_hosts": 1,
+    "total_services": 3,
+    "hosts": [
+        {
+            "ip": "10.0.0.1",
+            "status": "up",
+            "mac": null,
+            "os": "Linux",
+            "services": [
+                {
+                    "port": 22,
+                    "protocol": "tcp",
+                    "name": "ssh",
+                    "state": "open"
+                },
+                {
+                    "port": 80,
+                    "protocol": "tcp",
+                    "name": "http",
+                    "state": "open"
+                }
+            ]
+        },
+        {
+            "ip": "10.0.0.2",
+            "status": "down",
+            "mac": null,
+            "os": "Windows",
+            "services": [
+                {
+                    "port": 445,
+                    "protocol": "tcp",
+                    "name": "smb",
+                    "state": "closed"
+                }
+            ]
+        }
+    ]
+}
