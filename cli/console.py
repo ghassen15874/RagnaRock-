@@ -697,6 +697,36 @@ class PySploitConsole(cmd.Cmd):
             print(f"{port:<8} {proto:<10} {name:<15} {state}")
         print()
 
+    def do_report(self, arg):
+        """Generate a report for the current workspace: report [html|markdown] [filename]"""
+        from core.reporter import Reporter
+        
+        args = arg.split()
+        format_type = args[0].lower() if args else "markdown"
+        
+        sm = self.framework.session_manager
+        workspace = sm.current_workspace
+        
+        if format_type not in ["html", "markdown", "md"]:
+            print("[-] Invalid format. Use 'html' or 'markdown'")
+            return
+            
+        default_ext = "html" if format_type == "html" else "md"
+        filename = args[1] if len(args) > 1 else f"report_{workspace}.{default_ext}"
+        
+        reporter = Reporter(sm.db)
+        print(f"[*] Generating {format_type.upper()} report for workspace '{workspace}'...")
+        
+        if format_type == "html":
+            success = reporter.generate_html(workspace, filename)
+        else:
+            success = reporter.generate_markdown(workspace, filename)
+            
+        if success:
+            print(f"[+] Report successfully saved to: {filename}")
+        else:
+            print("[-] Failed to generate report")
+
     def do_db(self, arg):
         """Database management: db [save|clean|reset|stats|info]"""
         args = arg.split()
@@ -798,6 +828,31 @@ class PySploitConsole(cmd.Cmd):
         
         else:
             print("Usage: handlers [list|stop <handler_id>]")
+
+    # ========== SCRIPTING COMMANDS ==========
+    
+    def do_resource(self, arg):
+        """Run commands from a resource file: resource <file>"""
+        if not arg:
+            print("Usage: resource <file>")
+            return
+            
+        import os
+        if not os.path.exists(arg):
+            print(f"[-] Resource file not found: {arg}")
+            return
+            
+        print(f"[*] Running resource script: {arg}")
+        try:
+            with open(arg, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    print(f"[*] Executing: {line}")
+                    self.onecmd(line)
+        except Exception as e:
+            print(f"[-] Error executing resource file: {e}")
 
     # ========== DEBUG & TESTING COMMANDS ==========
     
@@ -908,6 +963,27 @@ class PySploitConsole(cmd.Cmd):
         else:
             return commands
 
+    def complete_workspace(self, text, line, begidx, endidx):
+        """Tab completion for workspace command"""
+        db = self.framework.session_manager.db
+        workspaces = db.get_workspaces()
+        # Handle arguments like '-a' or '-d'
+        args = line.split()
+        if len(args) > 1 and args[1] in ('-a', '-d'):
+            if text:
+                return [w for w in workspaces if w.startswith(text)]
+            return workspaces
+        if text:
+            return [w for w in workspaces if w.startswith(text)]
+        return workspaces
+        
+    def complete_show(self, text, line, begidx, endidx):
+        """Tab completion for show command"""
+        options = ['options', 'info', 'payloads', 'exploits', 'auxiliary', 'encoders', 'formatters']
+        if text:
+            return [opt for opt in options if opt.startswith(text)]
+        return options
+
     # ========== HELP COMMANDS ==========
     
     def do_help(self, arg):
@@ -948,6 +1024,7 @@ class PySploitConsole(cmd.Cmd):
             print("  db [save|clean|reset|stats|info]      - Database management")
             print("  export [filename]                     - Export sessions")
             print("  import <filename>                     - Import sessions")
+            print("  report [html|markdown] [filename]     - Generate workspace report")
             
             print("\n🔍 INFORMATION COMMANDS:")
             print("  show payloads                         - List payloads")
@@ -961,6 +1038,7 @@ class PySploitConsole(cmd.Cmd):
             print("  auxiliary_legacy <name> [options]     - Legacy auxiliary syntax")
             
             print("\n❓ OTHER COMMANDS:")
+            print("  resource <file>                       - Run resource script")
             print("  help [command]                        - Show help")
             print("  exit/quit                             - Exit console")
             print("  test_session                          - Test session manager")
