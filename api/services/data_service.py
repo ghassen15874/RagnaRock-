@@ -78,20 +78,20 @@ class DataService:
         if not cls.get_host_by_id(host_id, workspace):
             return [], 0
             
-        valid_sort_cols = {"id", "port", "protocol", "service_name", "state"}
+        valid_sort_cols = {"id", "port", "protocol", "name", "state"}
         if sort_by not in valid_sort_cols:
             sort_by = "port"
             
         direction = "DESC" if sort_desc else "ASC"
         
-        query = "SELECT id, host_id, port, protocol, service_name, state FROM services WHERE host_id = ?"
+        query = "SELECT id, host_id, port, protocol, name as service_name, state FROM services WHERE host_id = ?"
         params = [host_id]
         
         if protocol_filter:
             query += " AND protocol = ?"
             params.append(protocol_filter)
             
-        count_query = query.replace("SELECT id, host_id, port, protocol, service_name, state", "SELECT COUNT(*)")
+        count_query = query.replace("SELECT id, host_id, port, protocol, name as service_name, state", "SELECT COUNT(*)")
         
         query += f" ORDER BY {sort_by} {direction} LIMIT ? OFFSET ?"
         params.extend([limit, offset])
@@ -116,7 +116,7 @@ class DataService:
             cursor = conn.cursor()
             # Join with hosts to ensure workspace check
             cursor.execute('''
-                SELECT s.id, s.host_id, s.port, s.protocol, s.service_name, s.state 
+                SELECT s.id, s.host_id, s.port, s.protocol, s.name as service_name, s.state 
                 FROM services s
                 JOIN hosts h ON s.host_id = h.id
                 WHERE s.id = ? AND h.workspace = ?

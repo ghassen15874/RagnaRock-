@@ -124,3 +124,41 @@ class Reporter:
             f.write(html)
             
         return True
+
+    def generate_json(self, workspace, output_file):
+        """Generate a JSON report for a workspace"""
+        import json
+        hosts = self.db.get_hosts(workspace)
+        report_data = {
+            "workspace": workspace,
+            "date": datetime.now().isoformat(),
+            "total_hosts": len(hosts),
+            "hosts": []
+        }
+        
+        for host in hosts:
+            host_id, ws, ip, mac, os_name, status, created, updated = host
+            host_data = {
+                "ip": ip,
+                "status": status,
+                "mac": mac,
+                "os": os_name,
+                "services": []
+            }
+            
+            services = self.db.get_services(host_id)
+            for svc in services:
+                svc_id, hid, port, proto, name, state, info, sc, su = svc
+                host_data["services"].append({
+                    "port": port,
+                    "protocol": proto,
+                    "name": name,
+                    "state": state
+                })
+            
+            report_data["hosts"].append(host_data)
+            
+        with open(output_file, 'w') as f:
+            json.dump(report_data, f, indent=4)
+            
+        return True
