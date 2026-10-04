@@ -1,0 +1,80 @@
+//! macOS syscall implementation
+#![no_std]
+#![cfg(target_os = "macos")]
+
+use core::arch::asm;
+
+#[no_mangle]
+pub unsafe extern "C" fn macos_syscall(
+    syscall_number: u64,
+    arg1: u64,
+    arg2: u64,
+    arg3: u64,
+    arg4: u64,
+    arg5: u64,
+    arg6: u64,
+) -> u64 {
+    let ret: u64;
+    
+    asm!(
+        "mov rax, rdi",
+        "mov rdi, rsi",
+        "mov rsi, rdx", 
+        "mov rdx, rcx",
+        "mov r10, r8",
+        "mov r8, r9",
+        "syscall",
+        in("rdi") syscall_number,
+        in("rsi") arg1,
+        in("rdx") arg2,
+        in("rcx") arg3,
+        in("r8") arg4,
+        in("r9") arg5,
+        lateout("rax") ret,
+        options(nostack, preserves_flags)
+    );
+    
+    ret
+}
+
+// Mach syscall wrappers
+#[no_mangle]
+pub unsafe fn mach_task_self() -> u32 {
+    macos_syscall(0, 0, 0, 0, 0, 0, 0) as u32
+}
+
+#[no_mangle]
+pub unsafe fn vm_allocate(target_task: u32, address: *mut u64, size: u64, flags: i32) -> i32 {
+    macos_syscall(0, target_task as u64, address as u64, size, flags as u64, 0, 0) as i32
+}
+
+#[no_mangle]
+pub unsafe fn vm_deallocate(target_task: u32, address: u64, size: u64) -> i32 {
+    macos_syscall(0, target_task as u64, address, size, 0, 0, 0) as i32
+}
+
+#[no_mangle]
+pub unsafe fn vm_protect(target_task: u32, address: u64, size: u64, set_maximum: i32, new_protection: i32) -> i32 {
+    macos_syscall(0, target_task as u64, address, size, set_maximum as u64, new_protection as u64, 0) as i32
+}
+
+// Memory allocation with exec permission
+#[no_mangle]
+pub unsafe fn allocate_executable_memory(size: usize) -> *mut u8 {
+    let mut address: u64 = 0;
+    let result = vm_allocate(mach_task_self(), &mut address, size as u64, 0x1); // VM_FLAGS_ANYWHERE
+    
+    if result != 0 {
+        return std::ptr::null_mut();
+    }
+    
+    // Set RWX permissions
+    let protect_result = vm_protect(mach_task_self(), address, size as u64, 0, 0x7); // VM_PROT_ALL
+    
+    if protect_result != 0 {
+        vm_deallocate(mach_task_self(), address, size as u64);
+        return std::ptr::null_mut();
+    }
+    
+    address as *mut u8
+}

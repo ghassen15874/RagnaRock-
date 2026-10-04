@@ -1,0 +1,53 @@
+{
+  "name": "aws_cloudwatch",
+  "description": "Imitates AWS CloudWatch metrics",
+  "user_agents": [
+    "aws-cloudwatch-metric-agent/1.0",
+    "aws-cli/2.0.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+  ],
+  "endpoints": [
+    "/v1/metrics",
+    "/monitoring/data",
+    "/2010-08-01/metrics",
+    "/aws/monitoring"
+  ],
+  "headers": {
+    "Content-Type": "application/x-amz-json-1.1",
+    "User-Agent": "aws-cli/2.0.0",
+    "X-Amz-Date": "{timestamp_iso}",
+    "X-Amz-Target": "CloudWatch.PutMetricData"
+  },
+  "parameters": {
+    "Namespace": "Custom/Metrics",
+    "MetricData": [
+      {
+        "MetricName": "NetworkPackets",
+        "Value": "{random_int}",
+        "Timestamp": "{timestamp}",
+        "Unit": "Count",
+        "Dimensions": [
+          {
+            "Name": "InstanceId",
+            "Value": "i-{random_hex}"
+          }
+        ]
+      }
+    ]
+  },
+  "jitter": {
+    "min": 30,
+    "max": 90,
+    "distribution": "exponential"
+  },
+  "encryption": {
+    "algorithm": "aes_256_gcm",
+    "key_size": 256,
+    "encoding": "hex"
+  },
+  "beacon_format": "aws_json",
+  "data_transform": {
+    "method": "json_embed",
+    "field": "MetricData[0].Dimensions[1].Value"
+  }
+}

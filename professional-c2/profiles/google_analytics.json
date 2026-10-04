@@ -1,0 +1,47 @@
+{
+  "name": "google_analytics",
+  "description": "Imitates Google Analytics traffic",
+  "user_agents": [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  ],
+  "endpoints": [
+    "/collect",
+    "/analytics.js",
+    "/gtag/js",
+    "/pagead/1p-user-list/*"
+  ],
+  "headers": {
+    "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Origin": "https://www.google-analytics.com",
+    "Referer": "https://www.google-analytics.com/"
+  },
+  "parameters": {
+    "v": "1",
+    "tid": "UA-{random_number}-{random_digit}",
+    "cid": "{random_number}",
+    "t": "pageview",
+    "dp": "/{random_path}",
+    "dt": "{random_page_title}"
+  },
+  "jitter": {
+    "min": 45,
+    "max": 75,
+    "distribution": "normal"
+  },
+  "encryption": {
+    "algorithm": "chacha20_poly1305",
+    "key_size": 256,
+    "encoding": "base64"
+  },
+  "beacon_format": "google_analytics",
+  "data_transform": {
+    "method": "url_encode",
+    "prefix": "z=",
+    "suffix": ""
+  }
+}
