@@ -24,7 +24,9 @@ class PySploitConsole(cmd.Cmd):
     
     def update_prompt(self):
         """Update prompt based on current context"""
-        self.prompt = f"{self.module_manager.get_prompt()} > "
+        workspace = self.framework.session_manager.current_workspace
+        ws_prefix = f"[{workspace}] " if workspace != 'default' else ""
+        self.prompt = f"{ws_prefix}{self.module_manager.get_prompt()} > "
     
     def get_banner(self):
         return """
@@ -556,8 +558,49 @@ class PySploitConsole(cmd.Cmd):
         else:
             print(f"[-] Failed to add persistence")
 
-    # ========== DATABASE COMMANDS ==========
+    # ========== DATABASE & WORKSPACE COMMANDS ==========
     
+    def do_workspace(self, arg):
+        """Manage workspaces: workspace [-a <name>|-d <name>|<name>]"""
+        args = arg.split()
+        db = self.framework.session_manager.db
+        sm = self.framework.session_manager
+        
+        if not args:
+            # List workspaces
+            workspaces = db.get_workspaces()
+            print("\nWorkspaces:")
+            print("=" * 50)
+            for ws in workspaces:
+                prefix = "* " if ws == sm.current_workspace else "  "
+                print(f"{prefix}{ws}")
+            return
+            
+        if args[0] == '-a' and len(args) > 1:
+            name = args[1]
+            if db.add_workspace(name):
+                print(f"[+] Added workspace: {name}")
+                sm.set_workspace(name)
+                self.update_prompt()
+            return
+            
+        if args[0] == '-d' and len(args) > 1:
+            name = args[1]
+            if name == sm.current_workspace:
+                print("[-] Cannot delete the active workspace")
+                return
+            if db.delete_workspace(name):
+                print(f"[+] Deleted workspace: {name}")
+            return
+            
+        # Switch workspace
+        name = args[0]
+        if sm.set_workspace(name):
+            print(f"[*] Switched to workspace: {name}")
+            self.update_prompt()
+        else:
+            print(f"[-] Workspace not found: {name}")
+
     def do_db(self, arg):
         """Database management: db [save|clean|reset|stats|info]"""
         args = arg.split()
@@ -802,7 +845,8 @@ class PySploitConsole(cmd.Cmd):
             print("  session <id>                          - Interact with session")
             print("  persistence <id> <method>             - Add persistence")
             
-            print("\n💾 DATABASE COMMANDS:")
+            print("\n💾 DATABASE & WORKSPACE COMMANDS:")
+            print("  workspace [-a <name>|-d <name>|<name>] - Manage workspaces")
             print("  db [save|clean|reset|stats|info]      - Database management")
             print("  export [filename]                     - Export sessions")
             print("  import <filename>                     - Import sessions")

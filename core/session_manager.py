@@ -13,10 +13,11 @@ from core.session_db import SessionDatabase
 from core.persistence import PersistenceManager
 
 class Session:
-    def __init__(self, session_id, session_type, target_info):
+    def __init__(self, session_id, session_type, target_info, workspace='default'):
         self.session_id = session_id
         self.session_type = session_type
         self.target_info = target_info
+        self.workspace = workspace
         self.created_at = datetime.now()
         self.last_seen = datetime.now()
         self.active = True
@@ -45,6 +46,7 @@ class Session:
             'session_id': self.session_id,
             'type': self.session_type,
             'target': self.target_info,
+            'workspace': self.workspace,
             'created_at': self.created_at.isoformat(),
             'last_seen': self.last_seen.isoformat(),
             'active': self.active,
@@ -59,9 +61,16 @@ class SessionManager:
         self.db = SessionDatabase()
         self.persistence = PersistenceManager(self.db)
         self.quiet = quiet
+        self.current_workspace = 'default'
 
         # Load existing sessions from database
         self.load_persisted_sessions()
+
+    def set_workspace(self, workspace):
+        if workspace not in self.db.get_workspaces():
+            return False
+        self.current_workspace = workspace
+        return True
 
     def load_persisted_sessions(self):
         """Load sessions from database on startup.
@@ -78,13 +87,14 @@ class SessionManager:
                 session = Session(
                     session_data['session_id'],
                     session_data['type'],
-                    session_data['target']
+                    session_data['target'],
+                    session_data.get('workspace', 'default')
                 )
                 session.created_at = datetime.fromisoformat(session_data['created_at'])
                 session.last_seen = datetime.fromisoformat(session_data['last_seen'])
                 # Sessions restored from DB cannot have live sockets; mark inactive.
                 session.active = False
-                session.metadata = session_data['metadata']
+                session.metadata = session_data.get('metadata', {})
 
                 self.sessions[session_data['session_id']] = session
 
@@ -113,9 +123,10 @@ class SessionManager:
             for session in self.sessions.values():
                 self.db.save_session(session)
             print("[+] All sessions saved to database")
+            
     def export_sessions(self, filename):
         """Export sessions to file"""
-        return self.db.export_sessions(filename)
+        return self.db.export_sessions(filename, self.current_workspace)
     
     def import_sessions(self, filename):
         """Import sessions from file"""
@@ -134,10 +145,13 @@ class SessionManager:
         return self.db.get_persistence_methods(session_id)
     
     def get_session(self, session_id):
-        return self.sessions.get(session_id)
+        session = self.sessions.get(session_id)
+        if session and session.workspace == self.current_workspace:
+            return session
+        return None
     
     def list_sessions(self):
-        return {sid: session.to_dict() for sid, session in self.sessions.items()}
+        return {sid: session.to_dict() for sid, session in self.sessions.items() if session.workspace == self.current_workspace}
     
     def close_session(self, session_id):
         """Close a specific session"""
@@ -440,7 +454,7 @@ exit      - Exit session
         with self.lock:
             self.session_counter += 1
             session_id = f"{session_type}-{self.session_counter}"
-            session = Session(session_id, session_type, target_info)
+            session = Session(session_id, session_type, target_info, self.current_workspace)
             self.sessions[session_id] = session
 
             try:

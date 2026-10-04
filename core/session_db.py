@@ -30,9 +30,28 @@ class SessionDatabase:
                     last_seen TEXT,
                     active INTEGER,
                     metadata TEXT,
-                    exported INTEGER DEFAULT 0
+                    exported INTEGER DEFAULT 0,
+                    workspace TEXT DEFAULT 'default'
                 )
             ''')
+
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS workspaces (
+                    name TEXT PRIMARY KEY,
+                    description TEXT,
+                    created_at TEXT
+                )
+            ''')
+            
+            # Insert default workspace if it doesn't exist
+            cursor.execute('INSERT OR IGNORE INTO workspaces (name, description, created_at) VALUES (?, ?, ?)', 
+                           ('default', 'Default Workspace', datetime.now().isoformat()))
+            
+            # Upgrade existing sessions table to add workspace column if missing
+            try:
+                cursor.execute('ALTER TABLE sessions ADD COLUMN workspace TEXT DEFAULT "default"')
+            except sqlite3.OperationalError:
+                pass # Column already exists
 
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS persistence (
@@ -54,8 +73,8 @@ class SessionDatabase:
                 conn.execute('PRAGMA journal_mode=WAL')
                 conn.execute('''
                     INSERT OR REPLACE INTO sessions
-                    (session_id, session_type, target_info, created_at, last_seen, active, metadata)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (session_id, session_type, target_info, created_at, last_seen, active, metadata, workspace)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     session.session_id,
                     session.session_type,
@@ -63,7 +82,8 @@ class SessionDatabase:
                     session.created_at.isoformat(),
                     session.last_seen.isoformat(),
                     1 if session.active else 0,
-                    json.dumps(session.metadata)
+                    json.dumps(session.metadata),
+                    session.workspace
                 ))
                 conn.commit()
             return True
@@ -71,17 +91,19 @@ class SessionDatabase:
             print(f"[-] Database error saving session: {e}")
             return False
     
-    def load_sessions(self):
-        """Load all sessions from database using context manager (fixes B6)."""
+    def load_sessions(self, workspace='default'):
+        """Load sessions from database for a specific workspace."""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute('PRAGMA journal_mode=WAL')
                 cursor = conn.cursor()
-                cursor.execute('SELECT * FROM sessions')
+                cursor.execute('SELECT * FROM sessions WHERE workspace = ?', (workspace,))
                 rows = cursor.fetchall()
 
             sessions = []
             for row in rows:
+                # row structure depends on columns:
+                # id(0), session_id(1), session_type(2), target_info(3), created_at(4), last_seen(5), active(6), metadata(7), exported(8), workspace(9)
                 session_data = {
                     'session_id': row[1],
                     'type': row[2],
@@ -89,7 +111,8 @@ class SessionDatabase:
                     'created_at': row[4],
                     'last_seen': row[5],
                     'active': bool(row[6]),
-                    'metadata': json.loads(row[7]) if row[7] else {}
+                    'metadata': json.loads(row[7]) if row[7] else {},
+                    'workspace': row[9] if len(row) > 9 else 'default'
                 }
                 sessions.append(session_data)
             return sessions
@@ -97,10 +120,10 @@ class SessionDatabase:
             print(f"[-] Failed to load sessions from database: {e}")
             return []
     
-    def export_sessions(self, filename="sessions_export.json"):
+    def export_sessions(self, filename="sessions_export.json", workspace='default'):
         """Export sessions to JSON file"""
         try:
-            sessions = self.load_sessions()
+            sessions = self.load_sessions(workspace)
             export_data = {
                 'export_time': datetime.now().isoformat(),
                 'sessions': sessions
@@ -154,8 +177,8 @@ class SessionDatabase:
                         continue
                     cursor.execute('''
                         INSERT OR REPLACE INTO sessions
-                        (session_id, session_type, target_info, created_at, last_seen, active, metadata, exported)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        (session_id, session_type, target_info, created_at, last_seen, active, metadata, exported, workspace)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (
                         str(session_data['session_id'])[:128],
                         str(session_data.get('type', 'unknown'))[:64],
@@ -164,7 +187,8 @@ class SessionDatabase:
                         str(session_data['last_seen'])[:32],
                         1 if session_data['active'] else 0,
                         json.dumps(session_data.get('metadata', {})),
-                        1
+                        1,
+                        session_data.get('workspace', 'default')
                     ))
                     imported += 1
                 conn.commit()
@@ -211,7 +235,52 @@ class SessionDatabase:
             })
         
         conn.close()
+        conn.close()
         return methods
+
+    def get_workspaces(self):
+        """Get list of all workspaces"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT name FROM workspaces')
+                return [row[0] for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"[-] Failed to get workspaces: {e}")
+            return ['default']
+
+    def add_workspace(self, name, description=""):
+        """Add a new workspace"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('INSERT INTO workspaces (name, description, created_at) VALUES (?, ?, ?)',
+                               (name, description, datetime.now().isoformat()))
+                conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            print(f"[-] Workspace '{name}' already exists")
+            return False
+        except Exception as e:
+            print(f"[-] Failed to add workspace: {e}")
+            return False
+
+    def delete_workspace(self, name):
+        """Delete a workspace and its associated sessions"""
+        if name == 'default':
+            print("[-] Cannot delete default workspace")
+            return False
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM workspaces WHERE name = ?', (name,))
+                cursor.execute('DELETE FROM sessions WHERE workspace = ?', (name,))
+                conn.commit()
+            return True
+        except Exception as e:
+            print(f"[-] Failed to delete workspace: {e}")
+            return False
+
     def deactivate_session(self, session_id):
         """Mark a session as inactive in database."""
         try:
