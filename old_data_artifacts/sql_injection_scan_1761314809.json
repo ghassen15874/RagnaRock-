@@ -1,0 +1,14 @@
+{
+  "scan_info": {
+    "target": "https://0a78002a0329643e82161a940067008a.web-security-academy.net",
+    "scan_date": "2025-10-24 10:06:49",
+    "module": "auxiliary/scanner/web/sql_injection",
+    "vulnerabilities_found": 0
+  },
+  "vulnerabilities": [],
+  "summary": {
+    "high_risk": 0,
+    "medium_risk": 0,
+    "low_risk": 0
+  }
+}

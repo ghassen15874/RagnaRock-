@@ -1,0 +1,15 @@
+{
+  "scan_info": {
+    "target": "http://localhost/DVWA/vulnerabilities/sqli_blind/",
+    "scan_date": "2025-10-24 09:37:04",
+    "module": "auxiliary/scanner/web/mod_sql_Injection",
+    "vulnerabilities_found": 0,
+    "payloads_tested": 153
+  },
+  "vulnerabilities": [],
+  "summary": {
+    "high_risk": 0,
+    "medium_risk": 0,
+    "low_risk": 0
+  }
+}

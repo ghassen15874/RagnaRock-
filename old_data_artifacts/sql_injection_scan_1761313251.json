@@ -1,0 +1,465 @@
+{
+  "scan_info": {
+    "target": "http://localhost/DVWA/vulnerabilities/sqli",
+    "scan_date": "2025-10-24 09:40:51",
+    "module": "auxiliary/scanner/web/sql_injection",
+    "vulnerabilities_found": 45
+  },
+  "vulnerabilities": [
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "id",
+      "payload": "' ORDER BY 1--",
+      "evidence": "Successful ORDER BY with 1 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "id",
+      "payload": "' ORDER BY 2--",
+      "evidence": "Successful ORDER BY with 2 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "id",
+      "payload": "' ORDER BY 3--",
+      "evidence": "Successful ORDER BY with 3 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "id",
+      "payload": "' ORDER BY 4--",
+      "evidence": "Successful ORDER BY with 4 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "id",
+      "payload": "' ORDER BY 5--",
+      "evidence": "Successful ORDER BY with 5 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "id",
+      "payload": "' ORDER BY 6--",
+      "evidence": "Successful ORDER BY with 6 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "id",
+      "payload": "' ORDER BY 7--",
+      "evidence": "Successful ORDER BY with 7 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "id",
+      "payload": "' ORDER BY 8--",
+      "evidence": "Successful ORDER BY with 8 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "id",
+      "payload": "' ORDER BY 9--",
+      "evidence": "Successful ORDER BY with 9 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "page",
+      "payload": "' ORDER BY 1--",
+      "evidence": "Successful ORDER BY with 1 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "page",
+      "payload": "' ORDER BY 2--",
+      "evidence": "Successful ORDER BY with 2 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "page",
+      "payload": "' ORDER BY 3--",
+      "evidence": "Successful ORDER BY with 3 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "page",
+      "payload": "' ORDER BY 4--",
+      "evidence": "Successful ORDER BY with 4 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "page",
+      "payload": "' ORDER BY 5--",
+      "evidence": "Successful ORDER BY with 5 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "page",
+      "payload": "' ORDER BY 6--",
+      "evidence": "Successful ORDER BY with 6 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "page",
+      "payload": "' ORDER BY 7--",
+      "evidence": "Successful ORDER BY with 7 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "page",
+      "payload": "' ORDER BY 8--",
+      "evidence": "Successful ORDER BY with 8 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "page",
+      "payload": "' ORDER BY 9--",
+      "evidence": "Successful ORDER BY with 9 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "user",
+      "payload": "' ORDER BY 1--",
+      "evidence": "Successful ORDER BY with 1 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "user",
+      "payload": "' ORDER BY 2--",
+      "evidence": "Successful ORDER BY with 2 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "user",
+      "payload": "' ORDER BY 3--",
+      "evidence": "Successful ORDER BY with 3 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "user",
+      "payload": "' ORDER BY 4--",
+      "evidence": "Successful ORDER BY with 4 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "user",
+      "payload": "' ORDER BY 5--",
+      "evidence": "Successful ORDER BY with 5 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "user",
+      "payload": "' ORDER BY 6--",
+      "evidence": "Successful ORDER BY with 6 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "user",
+      "payload": "' ORDER BY 7--",
+      "evidence": "Successful ORDER BY with 7 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "user",
+      "payload": "' ORDER BY 8--",
+      "evidence": "Successful ORDER BY with 8 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "user",
+      "payload": "' ORDER BY 9--",
+      "evidence": "Successful ORDER BY with 9 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "category",
+      "payload": "' ORDER BY 1--",
+      "evidence": "Successful ORDER BY with 1 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "category",
+      "payload": "' ORDER BY 2--",
+      "evidence": "Successful ORDER BY with 2 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "category",
+      "payload": "' ORDER BY 3--",
+      "evidence": "Successful ORDER BY with 3 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "category",
+      "payload": "' ORDER BY 4--",
+      "evidence": "Successful ORDER BY with 4 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "category",
+      "payload": "' ORDER BY 5--",
+      "evidence": "Successful ORDER BY with 5 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "category",
+      "payload": "' ORDER BY 6--",
+      "evidence": "Successful ORDER BY with 6 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "category",
+      "payload": "' ORDER BY 7--",
+      "evidence": "Successful ORDER BY with 7 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "category",
+      "payload": "' ORDER BY 8--",
+      "evidence": "Successful ORDER BY with 8 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "category",
+      "payload": "' ORDER BY 9--",
+      "evidence": "Successful ORDER BY with 9 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "search",
+      "payload": "' ORDER BY 1--",
+      "evidence": "Successful ORDER BY with 1 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "search",
+      "payload": "' ORDER BY 2--",
+      "evidence": "Successful ORDER BY with 2 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "search",
+      "payload": "' ORDER BY 3--",
+      "evidence": "Successful ORDER BY with 3 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "search",
+      "payload": "' ORDER BY 4--",
+      "evidence": "Successful ORDER BY with 4 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "search",
+      "payload": "' ORDER BY 5--",
+      "evidence": "Successful ORDER BY with 5 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "search",
+      "payload": "' ORDER BY 6--",
+      "evidence": "Successful ORDER BY with 6 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "search",
+      "payload": "' ORDER BY 7--",
+      "evidence": "Successful ORDER BY with 7 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "search",
+      "payload": "' ORDER BY 8--",
+      "evidence": "Successful ORDER BY with 8 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    },
+    {
+      "type": "UNION attack - column counting",
+      "url": "http://localhost/DVWA/vulnerabilities/sqli/",
+      "parameter": "search",
+      "payload": "' ORDER BY 9--",
+      "evidence": "Successful ORDER BY with 9 columns",
+      "risk_level": "High",
+      "confidence": "Medium",
+      "response_code": 200
+    }
+  ],
+  "summary": {
+    "high_risk": 45,
+    "medium_risk": 0,
+    "low_risk": 0
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "export_time": "2025-10-22T09:09:24.658806",
+  "sessions": [
+    {
+      "session_id": "reverse_shell-1",
+      "type": "reverse_shell",
+      "target": "192.168.1.247:39437 (Reverse Shell)",
+      "created_at": "2025-10-22T09:07:18.656215",
+      "last_seen": "2025-10-22T09:07:18.656241",
+      "active": true,
+      "metadata": {}
+    },
+    {
+      "session_id": "reverse_shell-2",
+      "type": "reverse_shell",
+      "target": "172.16.73.130:21 (VSFTPD 2.3.4 Backdoor)",
+      "created_at": "2025-10-22T09:07:21.618661",
+      "last_seen": "2025-10-22T09:07:21.618669",
+      "active": true,
+      "metadata": {}
+    }
+  ]
+}

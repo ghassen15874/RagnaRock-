@@ -1,0 +1,6 @@
+requests>=2.25.1
+cryptography>=3.3.1
+pycryptodome>=3.9.9
+colorama>=0.4.4
+argcomplete>=1.12.3
+pyinstaller>=4.2; sys_platform == "win32"
